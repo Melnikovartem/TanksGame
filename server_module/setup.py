@@ -5,10 +5,10 @@ import sqlite3
 def getKey(N):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))
 
-conn = sqlite3.connect('tanks.sqlite')
+conn = sqlite3.connect('../tanks.sqlite')
 c = conn.cursor()
 #c.execute("DELETE FROM players")
-names = ['K.D.S', 'Баtя','rtz','pepperoni','COK','rvs1514', 'Kamapula', 'MrAgranaut', 'Вомбат Батяня', 'Max', 'Пес' ]
+names = ['test' ]
 for name in names:
     key = getKey(8)
     print(name," - ", key)

@@ -51,7 +51,7 @@ def make_testing():
 
     #make map
     #mainMap = [['.' for i in range(int(settings["height"]))] for j in range(int(settings["width"]))]
-    with open('map.txt') as map_file:
+    with open('../map.txt') as map_file:
         map_data = map_file.read()
         mainMap = map_data.split('\n')
         for i in range(len(mainMap)):

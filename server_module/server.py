@@ -45,7 +45,7 @@ class MainHandler(tornado.web.RequestHandler):
             print(e)
             self.write("<script>alert('Ошибка загрузки!');location.href=location.href;</script>")
 
-        sys.path.append(os.path.dirname(__file__) + "/bots")
+        sys.path.append(os.path.dirname(__file__) + "/../bots")
 
 class StatsHandler(tornado.web.RequestHandler):
     def get(self):
@@ -96,7 +96,7 @@ class GameHandler(tornado.web.RequestHandler):
         settings = dict()
         for string in result:
             settings[string[1]] = string[2]
-        with open('map.txt') as map_file:
+        with open('../map.txt') as map_file:
             map_data = map_file.read()
             mainMap = map_data.split('\n')
             for i in range(len(mainMap)):
@@ -114,7 +114,7 @@ class StateHandler(tornado.web.RequestHandler):
         settings = dict()
         for string in result:
             settings[string[1]] = string[2]
-        with open('map.txt') as map_file:
+        with open('../map.txt') as map_file:
             map_data = map_file.read()
             mainMap = map_data.split('\n')
             for i in range(len(mainMap)):
