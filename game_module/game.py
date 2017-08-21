@@ -17,7 +17,7 @@ def make_testing():
         except Exception as e:
             print(e)
 
-    conn = sqlite3.connect('tanks.sqlite')
+    conn = sqlite3.connect('../tanks.sqlite')
     c = conn.cursor()
 
     #get settings

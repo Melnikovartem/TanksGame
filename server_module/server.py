@@ -14,7 +14,7 @@ class MainHandler(tornado.web.RequestHandler):
     def post(self):
         try:
             file = self.request.files['file'][0]
-            conn = sqlite3.connect('tanks.sqlite')
+            conn = sqlite3.connect('../tanks.sqlite')
             c = conn.cursor()
             c.execute("SELECT * FROM players WHERE key = '%s'"%self.get_argument("key"))
             player = c.fetchone()
@@ -49,7 +49,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 class StatsHandler(tornado.web.RequestHandler):
     def get(self):
-        conn = sqlite3.connect('tanks.sqlite')
+        conn = sqlite3.connect('../tanks.sqlite')
         gamestate=[]
         c = conn.cursor()
         c.execute("SELECT * FROM players")
@@ -89,7 +89,7 @@ class StatsHandler(tornado.web.RequestHandler):
         self.render("stats.html", gamestate = sorted(gamestate, key=lambda k: -k['score']))
 class GameHandler(tornado.web.RequestHandler):
     def get(self):
-        conn = sqlite3.connect('tanks.sqlite')
+        conn = sqlite3.connect('../tanks.sqlite')
         c = conn.cursor()
         c.execute("SELECT * FROM settings")
         result = c.fetchall()
@@ -107,7 +107,7 @@ class GameHandler(tornado.web.RequestHandler):
 
 class StateHandler(tornado.web.RequestHandler):
     def get(self):
-        conn = sqlite3.connect('tanks.sqlite')
+        conn = sqlite3.connect('../tanks.sqlite')
         c = conn.cursor()
         c.execute("SELECT * FROM settings")
         result = c.fetchall()
@@ -195,7 +195,12 @@ class StateHandler(tornado.web.RequestHandler):
 
 class Application(tornado.web.Application):
     def __init__(self):
-        handlers = [(r"/", MainHandler),(r"/game", GameHandler),(r"/state", StateHandler), (r"/stats", StatsHandler),(r'/static/(.*)', tornado.web.StaticFileHandler, {'path': os.path.dirname(__file__)+"/static/"}),]
+        handlers = [(r"/", MainHandler),
+                (r"/game", GameHandler),
+                (r"/state", StateHandler), 
+                (r"/stats", StatsHandler),
+                (r'/static/(.*)', tornado.web.StaticFileHandler, 
+                {'path': os.path.dirname(__file__)+"/static/"}),]
         settings = {}
         super(Application, self).__init__(handlers, **settings)
 
