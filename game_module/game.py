@@ -4,12 +4,13 @@ import time
 import sys
 import os
 import importlib as imp
+import config
 
 ## Before was a great system of print information by the game i will hide it by ##
 
 def make_testing():
     #работа с m файлами
-    folder = way + 'game_module/bots'
+    folder = config.way + 'game_module/bots'
     for the_file in os.listdir(folder):
         file_path = os.path.join(folder, the_file)
         try:
@@ -17,9 +18,9 @@ def make_testing():
                 ##print(the_file)
                 os.unlink(file_path)
         except Exception as e:
-            ##print(e)
+            print(e)
 
-    conn = sqlite3.connect(way + '/tanks.sqlite')
+    conn = sqlite3.connect(config.way + '/tanks.sqlite')
     c = conn.cursor()
 
     #get settings
@@ -263,9 +264,9 @@ def make_testing():
 
                         kills[player]+=1
 
-##                        print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
-                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(px) + ", " + str(
-                            y) + "] " + choices[player])
+##                      print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
+##                              health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(px) + ", " + str(
+##                              y) + "] " + choices[player])
                         c.execute("UPDATE game SET life = " + str(health[hit_player]) + " WHERE key = ?", [hit_player])
                         break
             if choices[player] == "fire_down":
@@ -282,7 +283,7 @@ def make_testing():
                         kills[player] += 1
 
 ##                        print(player + " ("+str(health[player])+") hits " + str(hit_player) + " (" + str(
-                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> ["+str(px)+", "+str(y)+"] " + choices[player])
+##                              health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> ["+str(px)+", "+str(y)+"] " + choices[player])
 
 
 
@@ -302,8 +303,8 @@ def make_testing():
                         kills[player] += 1
 
 ##                        print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
-                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(x) + ", " + str(
-                            py) + "] " + choices[player])
+##                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(x) + ", " + str(
+##                            py) + "] " + choices[player])
 
 
 
@@ -323,8 +324,8 @@ def make_testing():
                         kills[player] += 1
 
 ##                        print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
-                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(x) + ", " + str(
-                            py) + "] " + choices[player])
+##                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(x) + ", " + str(
+##                            py) + "] " + choices[player])
 
 
 
