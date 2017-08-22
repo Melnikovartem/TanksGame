@@ -187,67 +187,54 @@ def make_testing():
 
             if choices[player]=="go_up":
                 steps[player]+=1
-                if int(coords[player]["y"]) > 0 and mainMap[coords[player]["x"]][coords[player]["y"] - 1] in ('.', '@'):
+                if int(y_now) > 0 and mainMap[x_now][y_now - 1] in ('.', '@'):
                     if mainMap[x_now][y_now - 1] == '@':
                         coins[player] += 1
                     mainMap[x_now][y_now] = '.'
                     healthMap[x_now][y_now] = 0
                     coords[player]["y"] -= 1
+
+
+            if choices[player] == "go_down":
+                steps[player]+=1
+                if int(y_now) < int(settings["height"]) - 1 and mainMap[x_now][y_now + 1] in ('.', '@'):
+                    if mainMap[x_now][y_now + 1] == '@':
+                        coins[player] += 1
+                    mainMap[x_now][y_now] = '.'
+                    healthMap[x_now][y_now] = 0
+                    coords[player]["y"] += 1
+
+
+            if choices[player] == "go_left":
+                steps[player]+=1
+                if int(x_now) > 0 and mainMap[x_now - 1][y_now] in ('.', '@'):
+                    if mainMap[x_now - 1][y_now] == '@':
+                        coins[player] += 1
+                    mainMap[x_now][y_now] = '.'
+                    healthMap[x_now][y_now] = 0
+                    coords[player]["x"] -= 1
+
+
+            if choices[player] == "go_right":
+                steps[player] += 1
+                if int(x_now) < int(settings["height"]) - 1 and mainMap[x_now + 1][y_now] in ('.', '@'):
+                    if mainMap[x_now + 1][y_now] == '@':
+                        coins[player] += 1
+                    mainMap[x_now][y_now] = '.'
+                    healthMap[x_now][y_now] = 0
+                    coords[player]["x"] -= 1
+                    
+                
+            if choices[player][:2] == "go":
                     y_now = coords[player]["y"]
+                    x_now = coords[player]["x"]
                     mainMap[x_now][y_now] = player
                     healthMap[x_now][y_now] = health[player]
                     c.execute("UPDATE game SET y = " + str(coords[player]["y"]) + " WHERE key = ?", [player])
                     c.execute(
                         "DELETE FROM coins WHERE x = ? AND y = ?",
                         [coords[player]["x"], coords[player]["y"]])
-
-
-            if choices[player] == "go_down":
-                steps[player] += 1
-                if int(coords[player]["y"]) < int(settings["height"]) - 1 and mainMap[coords[player]["x"]][coords[player]["y"]+1] in ('.', '@'):
-                    if mainMap[coords[player]["x"]][coords[player]["y"] + 1] == '@':
-                        coins[player] += 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = '.'
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = 0
-                    coords[player]["y"] += 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = player
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = health[player]
-                    c.execute("UPDATE game SET y = " + str(coords[player]["y"]) + " WHERE key = ?", [player])
-                    c.execute(
-                        "DELETE FROM coins WHERE x = ? AND y = ?",
-                        [coords[player]["x"], coords[player]["y"]])
-
-
-            if choices[player] == "go_left":
-                steps[player] += 1
-                if int(coords[player]["x"]) > 0 and mainMap[int(coords[player]["x"]) -1][coords[player]["y"]] in ('.', '@'):
-                    if mainMap[coords[player]["x"]-1][coords[player]["y"]] == '@':
-                        coins[player] += 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = '.'
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = 0
-                    coords[player]["x"] -= 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = player
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = health[player]
-                    c.execute("UPDATE game SET x = " + str(coords[player]["x"]) + " WHERE key = ?", [player])
-                    c.execute(
-                        "DELETE FROM coins WHERE x = ? AND y = ?",
-                        [coords[player]["x"], coords[player]["y"]])
-
-
-            if choices[player] == "go_right":
-                steps[player] += 1
-                if int(coords[player]["x"]) < int(settings["width"]) - 1 and mainMap[int(coords[player]["x"])+1][coords[player]["y"]] in ('.', '@'):
-                    if mainMap[coords[player]["x"]+1][coords[player]["y"]] == '@':
-                        coins[player] += 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = '.'
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = 0
-                    coords[player]["x"]+=1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = player
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = health[player]
-                    c.execute("UPDATE game SET x = " + str(coords[player]["x"]) + " WHERE key = ?", [player])
-                    c.execute(
-                        "DELETE FROM coins WHERE x = ? AND y = ?",
-                        [coords[player]["x"], coords[player]["y"]])
+                
 
 
             if choices[player]!="error":
