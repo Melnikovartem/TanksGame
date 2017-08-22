@@ -1,13 +1,7 @@
 __author__ = ''
 import tornado.web
 import tornado.httpserver
-import sqlite3
-import sys
-import os
-import json
 import logic
-
-from time import gmtime, strftime
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
