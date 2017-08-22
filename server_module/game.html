@@ -22,6 +22,7 @@
         body {
             background-image: url(static/grass.jpg);
             background-repeat: repeat;
+            #background-color: darkgreen;
         }
         td {
             color: white;
@@ -55,6 +56,29 @@
             background-size: contain;
             background-position: center;
         }
+        
+        /*table {
+                width:100%;
+            }
+        td {
+            text-align: center;
+            width:3%;
+            position:relative;
+        }
+        td:after{
+            content:'';
+            display:block;
+            margin-top:100%;
+        }
+        td .my_div {
+            position:absolute;
+            padding-top: 50;
+            top:0;
+            bottom:0;
+            left:0;
+            right:0;
+        }*/
+            
     </style>
     <script>
     var timerId = setInterval(function() {
@@ -123,6 +147,7 @@
         <tr>
          {% for y in range(int(width)) %}
             <td  class="text-center" id="{{ x }}_{{ y }}">.</td>
+            <!-- <td class="text-center" id="{{ x }}_{{ y }}"><div class="my_div"></div></td> -->
          {% end %}
         </tr>
     {% end %}
