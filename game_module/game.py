@@ -5,10 +5,12 @@ import sys
 import os
 import importlib as imp
 import config
+from random import shuffle
 
 ## Before was a great system of print information by the game i will hide it by ##
 
-def new_battle(room):
+def new_battle(room_number):
+    room = str(room_number)
     #работа с m файлами
     folder = config.way + 'game_module/bots'
     for the_file in os.listdir(folder):
@@ -25,7 +27,7 @@ def new_battle(room):
     c = conn.cursor()
 
     #get settings
-    c.execute("SELECT * FROM settings WHERE room == " + str(room))
+    c.execute("SELECT * FROM settings WHERE room = " + room)
     result = c.fetchall()
     settings = dict()
     for string in result:
@@ -34,11 +36,12 @@ def new_battle(room):
     #get bots
     #change to in game
     names = dict()
-    c.execute("SELECT key, name FROM players WHERE state = 'ready'")
-    result = c.fetchall()
+    c.execute("SELECT key, name FROM players WHERE state = 'ready' AND room = -1")
+    result = shuffle(fetchall())
     players = list()
-    ##print("CURRENT PLAYERS:")
-    for string in result:
+    ##print("CURRENT PLAYERS:") 
+    #6 random bots
+    for string in result[:6]:
         ##print(string[0]+" - "+string[1])
         players.append(string[0])
         names[string[0]]=string[1]
@@ -46,10 +49,10 @@ def new_battle(room):
     ##print("")
 
     #clear current state
-    c.execute("DELETE FROM statistics WHERE room == " + str(room))
-    c.execute("DELETE FROM actions WHERE room == " + str(room))
-    c.execute("DELETE FROM game WHERE room == " + str(room))
-    c.execute("DELETE FROM coins  WHERE room == " + str(room))
+    c.execute("DELETE FROM statistics WHERE room = " + str(room))
+    c.execute("DELETE FROM actions WHERE room = " + str(room))
+    c.execute("DELETE FROM game WHERE room = " + str(room))
+    c.execute("DELETE FROM coins  WHERE room = " + str(room))
 
 
 
@@ -107,7 +110,7 @@ def new_battle(room):
         healthMap[x][y] = int(settings["max_health"])
         coords[player]["x"]=x
         coords[player]["y"] =y
-        c.execute("INSERT INTO statistics (key) VALUES (?)", [player])
+        c.execute("INSERT INTO statistics (key, room) VALUES (?,?)", [player, room])
         c.execute("INSERT INTO game (key,x,y,life,room) VALUES (?,?,?,?,?)", [player,x,y, str(health[player]), room])
     c.execute("UPDATE settings SET value = ? WHERE param = ?", ["running", "game_state"])
 
@@ -120,7 +123,7 @@ def new_battle(room):
             y = random.randint(0, int(settings["height"])-1)
         mainMap[x][y] = '@'
         healthMap[x][y] = 1
-        c.execute("INSERT INTO coins (x,y) VALUES (?,?)", [x,y])
+        c.execute("INSERT INTO coins (x,y,room) VALUES (?,?,?)", [x,y,room])
     conn.commit()
 
     # game started
@@ -171,7 +174,7 @@ def new_battle(room):
                 history[player].append("crash")
                 choices[player] = "crash"
                 crashes[player]+=1
-                c.execute("INSERT INTO actions (key, value) VALUES (?, ?)", [player, choices[player]])
+                c.execute("INSERT INTO actions (key, value, room) VALUES (?, ?, ?)", [player, choices[player], room])
                 c.execute(
                     "UPDATE statistics SET crashes = " + str(crashes[player]) + " WHERE key = ?",
                     [player])
@@ -234,13 +237,13 @@ def new_battle(room):
                     healthMap[x_now][y_now] = health[player]
                     c.execute("UPDATE game SET y = " + str(coords[player]["y"]) + " WHERE key = ?", [player])
                     c.execute(
-                        "DELETE FROM coins WHERE x = ? AND y = ?",
-                        [coords[player]["x"], coords[player]["y"]])
+                        "DELETE FROM coins WHERE x = ? AND y = ? AND room = ?",
+                        [coords[player]["x"], coords[player]["y"], room])
                 
 
 
             if choices[player]!="error":
-                c.execute("INSERT INTO actions (key, value) VALUES (?, ?)", [player, choices[player]])
+                c.execute("INSERT INTO actions (key, value, room) VALUES (?, ?, ?)", [player, choices[player], room])
                 history[player].append(choices[player])
             else:
 ##                print(player+" ("+names[player]+") sent incorrect command: "+str(choices[player]))
@@ -381,7 +384,7 @@ def new_battle(room):
         time.sleep(1.2)
 
     c.execute("UPDATE settings SET value = ? WHERE param = ?", ["stop", "game_state"])
-
+    c.execute("UPDATE players SET room = -1 WHERE room = " + room)
     conn.commit()
     return settings
 if __name__ == "__main__":
