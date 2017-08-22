@@ -1,1 +1,1 @@
-way = "/root/hi_melnikov/Hakaton/"
+way = "/home/hi_melnikov/Hakaton/game_module"

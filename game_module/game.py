@@ -4,20 +4,23 @@ import time
 import sys
 import os
 import importlib as imp
+import config
+
+## Before was a great system of print information by the game i will hide it by ##
 
 def make_testing():
     #работа с m файлами
-    folder = './bots'
+    folder = config.way + 'game_module/bots'
     for the_file in os.listdir(folder):
         file_path = os.path.join(folder, the_file)
         try:
             if os.path.isfile(file_path) and file_path.find(".m")!=-1:
-                print(the_file)
+                ##print(the_file)
                 os.unlink(file_path)
         except Exception as e:
             print(e)
 
-    conn = sqlite3.connect('../tanks.sqlite')
+    conn = sqlite3.connect(config.way + '/tanks.sqlite')
     c = conn.cursor()
 
     #get settings
@@ -33,13 +36,13 @@ def make_testing():
     c.execute("SELECT key, name FROM players WHERE state = 'ready'")
     result = c.fetchall()
     players = list()
-    print("CURRENT PLAYERS:")
+    ##print("CURRENT PLAYERS:")
     for string in result:
-        print(string[0]+" - "+string[1])
+        ##print(string[0]+" - "+string[1])
         players.append(string[0])
         names[string[0]]=string[1]
-    print("")
-    print("")
+    ##print("")
+    ##print("")
 
     #clear current state
     c.execute("DELETE FROM statistics")
@@ -60,7 +63,7 @@ def make_testing():
         settings["height"] = len(mainMap[0])
         settings["width"] = len(mainMap)
 
-        print("size: {0} x {1}".format(settings["width"], settings["height"]))
+        ##print("size: {0} x {1}".format(settings["width"], settings["height"]))
     # 2-nd map aff all matrix of the game (with health) 0-wal, some-player, 1-coin or wall
     healthMap = [[0 for i in range(int(settings["height"]))] for j in range(int(settings["width"]))]
     for i in range(len(mainMap)):
@@ -124,7 +127,7 @@ def make_testing():
     while True:
         if int(settings['stop_ticks'])!=0 and ticks>int(settings['stop_ticks']) or lifeplayers<int(settings['game_stop']):
             break
-        print("current tick:"+str(ticks))
+##        print("current tick:"+str(ticks))
         #chices - dict with choices of all players
         choices = dict()
         ticks += 1
@@ -156,7 +159,7 @@ def make_testing():
                 module = __import__(player, fromlist=["make_choice"])
                 module = imp.reload(module)
                 makeChoice = getattr(module, "make_choice")
-                print("Now running:" +player+" ("+names[player]+")")
+##                print("Now running:" +player+" ("+names[player]+")")
                 if len(historyMap)==1:
                     choices[player] = makeChoice(int(coords[player]["x"]), int(coords[player]["y"]), historyMap); #тут выбор
                 else:
@@ -178,69 +181,68 @@ def make_testing():
 
         #print(historyMap)
         for player in players:
-            if player in banlist:
-                continue
+            #Analize what each user does
+            
+            x_now = coords[player]["x"]
+            y_now = coords[player]["y"]
+
             if choices[player]=="go_up":
                 steps[player]+=1
-                if int(coords[player]["y"]) > 0 and mainMap[coords[player]["x"]][coords[player]["y"] - 1] in ('.', '@'):
-                    if mainMap[coords[player]["x"]][coords[player]["y"] - 1] == '@':
+                if int(y_now) > 0 and mainMap[x_now][y_now - 1] in ('.', '@'):
+                    if mainMap[x_now][y_now - 1] == '@':
                         coins[player] += 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = '.'
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = 0
+                    mainMap[x_now][y_now] = '.'
+                    healthMap[x_now][y_now] = 0
                     coords[player]["y"] -= 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = player
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = health[player]
-                    c.execute("UPDATE game SET y = " + str(coords[player]["y"]) + " WHERE key = ?", [player])
-                    c.execute(
-                        "DELETE FROM coins WHERE x = ? AND y = ?",
-                        [coords[player]["x"], coords[player]["y"]])
+
+
             if choices[player] == "go_down":
-                steps[player] += 1
-                if int(coords[player]["y"]) < int(settings["height"]) - 1 and mainMap[coords[player]["x"]][coords[player]["y"]+1] in ('.', '@'):
-                    if mainMap[coords[player]["x"]][coords[player]["y"] + 1] == '@':
+                steps[player]+=1
+                if int(y_now) < int(settings["height"]) - 1 and mainMap[x_now][y_now + 1] in ('.', '@'):
+                    if mainMap[x_now][y_now + 1] == '@':
                         coins[player] += 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = '.'
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = 0
+                    mainMap[x_now][y_now] = '.'
+                    healthMap[x_now][y_now] = 0
                     coords[player]["y"] += 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = player
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = health[player]
-                    c.execute("UPDATE game SET y = " + str(coords[player]["y"]) + " WHERE key = ?", [player])
-                    c.execute(
-                        "DELETE FROM coins WHERE x = ? AND y = ?",
-                        [coords[player]["x"], coords[player]["y"]])
+
+
             if choices[player] == "go_left":
-                steps[player] += 1
-                if int(coords[player]["x"]) > 0 and mainMap[int(coords[player]["x"]) -1][coords[player]["y"]] in ('.', '@'):
-                    if mainMap[coords[player]["x"]-1][coords[player]["y"]] == '@':
+                steps[player]+=1
+                if int(x_now) > 0 and mainMap[x_now - 1][y_now] in ('.', '@'):
+                    if mainMap[x_now - 1][y_now] == '@':
                         coins[player] += 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = '.'
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = 0
+                    mainMap[x_now][y_now] = '.'
+                    healthMap[x_now][y_now] = 0
                     coords[player]["x"] -= 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = player
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = health[player]
-                    c.execute("UPDATE game SET x = " + str(coords[player]["x"]) + " WHERE key = ?", [player])
-                    c.execute(
-                        "DELETE FROM coins WHERE x = ? AND y = ?",
-                        [coords[player]["x"], coords[player]["y"]])
+
+
             if choices[player] == "go_right":
                 steps[player] += 1
-                if int(coords[player]["x"]) < int(settings["width"]) - 1 and mainMap[int(coords[player]["x"])+1][coords[player]["y"]] in ('.', '@'):
-                    if mainMap[coords[player]["x"]+1][coords[player]["y"]] == '@':
+                if int(x_now) < int(settings["height"]) - 1 and mainMap[x_now + 1][y_now] in ('.', '@'):
+                    if mainMap[x_now + 1][y_now] == '@':
                         coins[player] += 1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = '.'
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = 0
-                    coords[player]["x"]+=1
-                    mainMap[coords[player]["x"]][coords[player]["y"]] = player
-                    healthMap[coords[player]["x"]][coords[player]["y"]] = health[player]
-                    c.execute("UPDATE game SET x = " + str(coords[player]["x"]) + " WHERE key = ?", [player])
+                    mainMap[x_now][y_now] = '.'
+                    healthMap[x_now][y_now] = 0
+                    coords[player]["x"] -= 1
+                    
+                
+            if choices[player][:3] == "go_":
+                    y_now = coords[player]["y"]
+                    x_now = coords[player]["x"]
+                    mainMap[x_now][y_now] = player
+                    healthMap[x_now][y_now] = health[player]
+                    c.execute("UPDATE game SET y = " + str(coords[player]["y"]) + " WHERE key = ?", [player])
                     c.execute(
                         "DELETE FROM coins WHERE x = ? AND y = ?",
                         [coords[player]["x"], coords[player]["y"]])
-            if choices[player]=="go_up" or choices[player] == "go_down" or choices[player] == "go_left" or choices[player] == "go_right" or  choices[player] == "fire_up" or choices[player] == "fire_down" or choices[player] == "fire_left" or choices[player] == "fire_right" or choices[player] == "crash":
+                
+
+
+            if choices[player]!="error":
                 c.execute("INSERT INTO actions (key, value) VALUES (?, ?)", [player, choices[player]])
                 history[player].append(choices[player])
             else:
-                print(player+" ("+names[player]+") sent incorrect command: "+str(choices[player]))
+##                print(player+" ("+names[player]+") sent incorrect command: "+str(choices[player]))
                 errors[player] += 1
                 history[player].append("error")
             #db record
@@ -262,12 +264,9 @@ def make_testing():
 
                         kills[player]+=1
 
-                        print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
-                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(px) + ", " + str(
-                            y) + "] " + choices[player])
-
-
-
+##                      print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
+##                              health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(px) + ", " + str(
+##                              y) + "] " + choices[player])
                         c.execute("UPDATE game SET life = " + str(health[hit_player]) + " WHERE key = ?", [hit_player])
                         break
             if choices[player] == "fire_down":
@@ -283,8 +282,8 @@ def make_testing():
 
                         kills[player] += 1
 
-                        print(player + " ("+str(health[player])+") hits " + str(hit_player) + " (" + str(
-                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> ["+str(px)+", "+str(y)+"] " + choices[player])
+##                        print(player + " ("+str(health[player])+") hits " + str(hit_player) + " (" + str(
+##                              health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> ["+str(px)+", "+str(y)+"] " + choices[player])
 
 
 
@@ -303,9 +302,9 @@ def make_testing():
 
                         kills[player] += 1
 
-                        print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
-                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(x) + ", " + str(
-                            py) + "] " + choices[player])
+##                        print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
+##                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(x) + ", " + str(
+##                            py) + "] " + choices[player])
 
 
 
@@ -324,17 +323,17 @@ def make_testing():
 
                         kills[player] += 1
 
-                        print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
-                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(x) + ", " + str(
-                            py) + "] " + choices[player])
+##                        print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
+##                            health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(x) + ", " + str(
+##                            py) + "] " + choices[player])
 
 
 
 
                         c.execute("UPDATE game SET life = " + str(health[hit_player]) + " WHERE key = ?", [hit_player])
                         break
-
-            if choices[player] == "fire_up" or choices[player] == "fire_down" or choices[player] == "fire_left" or choices[player] == "fire_right":
+            
+            if choices[player][:5] == "fire_":
                 c.execute(
                     "UPDATE statistics SET kills = " + str(kills[player]) + " WHERE key = ?",
                     [player])
@@ -370,13 +369,13 @@ def make_testing():
                 healthMap[coords[hit_player]['x']][coords[hit_player]['y']] = 0
                 health[hit_player] = 0
                 lifeplayers -= 1
-                print(hit_player + " is dead!")
+##                print(hit_player + " is dead!")
                 remove_list.append(hit_player)
         for p in remove_list:
-            print(p + " - try to remove")
-            print(players)
+##            print(p + " - try to remove")
+##            print(players)
             players.remove(p)
-            print(players)
+##            print(players)
         conn.commit()
         time.sleep(1.2)
 
