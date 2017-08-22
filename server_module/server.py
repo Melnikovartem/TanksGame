@@ -11,18 +11,18 @@ class MainHandler(tornado.web.RequestHandler):
 
 class AddPlayer(tornado.web.RequestHandler):
     generate=self.get_argument("generate")
-    if generate='True':
+    if generate=='True':
         name = self.get_argument("name")
         conn = sqlite3.connect('../tanks.sqlite')
         c = conn.cursor()
         c.execute('INSERT into Name values (name)')
         import random
         import string
-        token = ”.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(16))
+        token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(16))
         c.execute('INSERT into Token values (token)')
 
 class StatsHandler(tornado.web.RequestHandler):
-    def get(self)
+    def get(self):
         logic.get_StatsHandler(self)
         
  
@@ -31,7 +31,7 @@ class GameHandler(tornado.web.RequestHandler):
         logic.get_GameHandler
 
 class StateHandler(tornado.web.RequestHandler):
-    def get(self:)
+    def get(self):
         logic.get_StateHandler(self)
 
 class Application(tornado.web.Application):
