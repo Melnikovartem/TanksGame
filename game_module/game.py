@@ -8,7 +8,7 @@ import config
 
 ## Before was a great system of print information by the game i will hide it by ##
 
-def new_battle(numer):
+def new_battle(room):
     #работа с m файлами
     folder = config.way + 'game_module/bots'
     for the_file in os.listdir(folder):
@@ -25,7 +25,7 @@ def new_battle(numer):
     c = conn.cursor()
 
     #get settings
-    c.execute("SELECT * FROM settings")
+    c.execute("SELECT * FROM settings WHERE room == " + str(room))
     result = c.fetchall()
     settings = dict()
     for string in result:
@@ -46,10 +46,10 @@ def new_battle(numer):
     ##print("")
 
     #clear current state
-    c.execute("DELETE FROM statistics")
-    c.execute("DELETE FROM actions")
-    c.execute("DELETE FROM game")
-    c.execute("DELETE FROM coins")
+    c.execute("DELETE FROM statistics WHERE room == " + str(room))
+    c.execute("DELETE FROM actions WHERE room == " + str(room))
+    c.execute("DELETE FROM game WHERE room == " + str(room))
+    c.execute("DELETE FROM coins  WHERE room == " + str(room))
 
 
 
@@ -108,7 +108,7 @@ def new_battle(numer):
         coords[player]["x"]=x
         coords[player]["y"] =y
         c.execute("INSERT INTO statistics (key) VALUES (?)", [player])
-        c.execute("INSERT INTO game (key,x,y,life) VALUES (?,?,?,?)", [player,x,y, str(health[player])])
+        c.execute("INSERT INTO game (key,x,y,life,room) VALUES (?,?,?,?,?)", [player,x,y, str(health[player]), room])
     c.execute("UPDATE settings SET value = ? WHERE param = ?", ["running", "game_state"])
 
     #coins
