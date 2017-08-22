@@ -10,12 +10,12 @@
     <!-- Latest compiled and minified JavaScript -->
     <script src="static/bootstrap.min.js"></script>
     <style>
-        table {
+         table {
             margin: 0 auto;
             border-collapse: collapse;
             table-layout: fixed;
             width: 100%;
-        }
+        } 
         p {
             margin: 0 !important;
         }
@@ -24,9 +24,11 @@
             background-repeat: repeat;
             #background-color: darkgreen;
         }
+	
         td {
             color: white;
         }
+	
         .player
         {
             background-image: url(static/player.png);
@@ -57,7 +59,7 @@
             background-position: center;
         }
         
-        /*table {
+        table {
                 width:100%;
             }
         td {
@@ -77,7 +79,7 @@
             bottom:0;
             left:0;
             right:0;
-        }*/
+        }
             
     </style>
     <script>
@@ -146,27 +148,12 @@
     {% for x in range(int(height)) %}
         <tr>
          {% for y in range(int(width)) %}
-            <td  class="text-center" id="{{ x }}_{{ y }}">.</td>
-            <!-- <td class="text-center" id="{{ x }}_{{ y }}"><div class="my_div"></div></td> -->
+            <td class="text-center" id="{{ x }}_{{ y }}"><div class="my_div"></div></td> 
          {% end %}
         </tr>
     {% end %}
     </table>
 
-<p style="text-align: center">
- <div style="position: absolute; right: 0; bottom: 0">
-  <a href="stats.html" target="_blank">
-   <button><i> Статистика </i></button>
-  </a>
- </div>
-</p>
-<p>
- <div style="position: absolute; left: 0; bottom: 0">
-  Name: <br>
-  Place: <br>
-  Last command:
- </div>
-</p>
 </body>
 <!--адерс ссылки на стату через post-->
 </html>

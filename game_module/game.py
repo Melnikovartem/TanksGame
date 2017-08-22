@@ -43,7 +43,7 @@ def new_battle(room_number):
     players = list()
     ##print("CURRENT PLAYERS:") 
     #6 random bots
-    for string in result[:6]:
+    for string in result:
         ##print(string[0]+" - "+string[1])
         players.append(string[0])
         names[string[0]]=string[1]
@@ -119,7 +119,7 @@ def new_battle(room_number):
     c.execute("UPDATE settings SET value = ? WHERE param = ?", ["running", "game_state"])
 
     #coins
-    for i in range(30):
+    for i in range(10):
         x = random.randint(0, int(settings["width"]) - 1)
         y = random.randint(0, int(settings["height"]) - 1)
         while mainMap[x][y]!='.':
@@ -194,7 +194,6 @@ def new_battle(room_number):
         #print(historyMap)
         #Analize what each user does
         for player in players:
-            
             x_now = coords[player]["x"]
             y_now = coords[player]["y"]
 
@@ -401,7 +400,8 @@ if __name__ == "__main__":
     if x == "clear":
         conn = sqlite3.connect(config.way + '/tanks.sqlite')
         c = conn.cursor() 
-        c.execute("UPDATE players SET room = -1 WHERE room = NULL")
+        c.execute("UPDATE players SET room = -1")
+        conn.commit()
         conn.close()
     else:
         while 1:
