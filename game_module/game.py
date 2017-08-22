@@ -8,7 +8,7 @@ import config
 
 ## Before was a great system of print information by the game i will hide it by ##
 
-def make_testing():
+def new_battle(numer):
     #работа с m файлами
     folder = config.way + 'game_module/bots'
     for the_file in os.listdir(folder):
@@ -20,6 +20,7 @@ def make_testing():
         except Exception as e:
             print(e)
 
+#    conn = sqlite3.connect(config.way + "/rooms/" + numer + '/tanks.sqlite')
     conn = sqlite3.connect(config.way + '/tanks.sqlite')
     c = conn.cursor()
 
@@ -29,7 +30,7 @@ def make_testing():
     settings = dict()
     for string in result:
         settings[string[1]] = string[2]
-    print(settings)
+##    print(settings)
     #get bots
     #change to in game
     names = dict()
@@ -383,12 +384,12 @@ def make_testing():
 
     conn.commit()
     return settings
-
-while 1:
-    s = make_testing()
-    if s['mode']!='sandbox':
-        break
-    time.sleep(5)
+if __name__ == "__main__":
+    while 1:
+        s = new_battle()
+        if s['mode']!='sandbox':
+            break
+        time.sleep(5)
 
 
 
