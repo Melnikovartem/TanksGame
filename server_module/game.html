@@ -18,7 +18,15 @@
         } 
         p {
             margin: 0 !important;
+	    position: absolute;
+	    top: -5px;
         }
+
+	span {
+	    position: absolute;
+	    bottom: 5px;
+	}
+
         body {
             background-image: url(static/grass.jpg);
             background-repeat: repeat;
@@ -27,6 +35,7 @@
 	
         td {
             color: white;
+	    position: relative;
         }
 	
         .player
@@ -104,11 +113,11 @@
                         if (item['hit']==1)
                         {
                             alert
-                            $('#'+j+'_'+i).html("<span style='color:red;'>"+item['life']+"</span><br><p style='font-size: 12px; line-height: 12px;'>"+item['name'].replace(" ", "<br/>")+'</p>');
+                            $('#'+j+'_'+i).html("<span style='color:red;'>"+"<span>"+item['life']+"</span>"+"</span><p style='font-size: 12px; line-height: 12px;'>"+item['name'].replace(" ", "<br/>")+'</p>');
                         }
                         else
                         {
-                            $('#'+j+'_'+i).html(item['life']+"<br><p style='font-size: 12px; line-height: 12px;'>"+item['name'].replace(" ", "<br/>")+'</p>');
+                            $('#'+j+'_'+i).html("<span>"+item['life']+"</span>"+"<p style='font-size: 12px; line-height: 12px;'>"+item['name'].replace(" ", "<br/>")+'</p>');
                         }
 
                     }
