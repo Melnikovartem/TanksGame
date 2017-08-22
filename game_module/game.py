@@ -56,7 +56,7 @@ def new_battle(numer):
     #make map
     #mainMap = [['.' for i in range(int(settings["height"]))] for j in range(int(settings["width"]))]
     #mainMap - map with all matrix of the game with positions of some suff
-    with open('../map.txt') as map_file:
+    with open(config.way + 'map.txt') as map_file:
         map_data = map_file.read()
         mainMap = map_data.split('\n')
         for i in range(len(mainMap)):
@@ -167,7 +167,7 @@ def new_battle(numer):
                     choices[player] = makeChoice(int(coords[player]["x"]), int(coords[player]["y"]), historyMap);  # тут выбор
 
             except Exception as e:
-                print(player+" ("+names[player]+") has crashed :( :"+str(e))
+##                print(player+" ("+names[player]+") has crashed :( :"+str(e))
                 history[player].append("crash")
                 choices[player] = "crash"
                 crashes[player]+=1
@@ -181,8 +181,8 @@ def new_battle(numer):
         conn.commit()
 
         #print(historyMap)
+        #Analize what each user does
         for player in players:
-            #Analize what each user does
             
             x_now = coords[player]["x"]
             y_now = coords[player]["y"]
@@ -226,7 +226,7 @@ def new_battle(numer):
                     healthMap[x_now][y_now] = 0
                     coords[player]["x"] -= 1
                     
-                
+            #make for each movement    
             if choices[player][:3] == "go_":
                     y_now = coords[player]["y"]
                     x_now = coords[player]["x"]
@@ -364,7 +364,7 @@ def new_battle(numer):
 
         remove_list = []
         for hit_player in players:
-            print(hit_player+" "+str(health[hit_player])+" - check")
+##            print(hit_player+" "+str(health[hit_player])+" - check")
             if health[hit_player] <= 0:
                 mainMap[coords[hit_player]['x']][coords[hit_player]['y']] = '.'
                 healthMap[coords[hit_player]['x']][coords[hit_player]['y']] = 0
