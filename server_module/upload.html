@@ -11,8 +11,25 @@
     <!-- Latest compiled and minified JavaScript -->
     <script src="static/bootstrap.min.js"></script></head>
 <body>
-<div class="col-md-6 col-md-offset-3">
+<div class="col-md-8 col-md-offset-3">
+    <div class="col-md-7">
     <form method="POST" enctype="multipart/form-data">
+    <h1>Если у вас нет ключа:</h1>
+        <div class="form-group">
+        <label for="key">Ваше имя</label>
+        <input type="text" id="name" name="name"  class="form-control"/>
+        </div>
+        <div class="form-group">
+        <h3><button class='btn' type="submit" id='generate' name ='generate'>Сгенерировать ключ</a></h3>
+        </div>
+        <div class="form-group">
+        <h3>Ваш код:</h3>{{code['name']}}
+        </div>
+        </form>
+    </div>
+    <div class="col-md-7">
+    <form method="POST" enctype="multipart/form-data">
+    <h1>Если у вас есть ключа:</h1>
         <div class="form-group">
         <label for="key">Ключ</label>
         <input type="text" id="key" name="key"  class="form-control"/>
@@ -22,9 +39,9 @@
         <input type="file" name="file" id="file" class="form-control"/>
         </div>
         <input type="submit"  class="form-control"/>
-
-    </form>
     <h3><a href='/game'>В игру!</a></h3>
+    </form>
+    </div>
     </div>
 </body>
 </html>
