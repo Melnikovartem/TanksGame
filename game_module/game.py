@@ -27,17 +27,19 @@ def new_battle(room_number):
     c = conn.cursor()
 
     #get settings
-    c.execute("SELECT * FROM settings WHERE room = " + room)
+    c.execute("SELECT * FROM settings")
     result = c.fetchall()
     settings = dict()
     for string in result:
         settings[string[1]] = string[2]
-##    print(settings)
+    #print(settings)
     #get bots
     #change to in game
     names = dict()
+    c.execute("UPDATE players SET room = -1 WHERE room IS NULL")
     c.execute("SELECT key, name FROM players WHERE state = 'ready' AND room = -1")
-    result = shuffle(fetchall())
+    result = c.fetchall()
+    shuffle(result)
     players = list()
     ##print("CURRENT PLAYERS:") 
     #6 random bots
@@ -45,6 +47,9 @@ def new_battle(room_number):
         ##print(string[0]+" - "+string[1])
         players.append(string[0])
         names[string[0]]=string[1]
+    for player in players:
+        c.execute("UPDATE players SET room = ? WHERE key = ?",[room, player])
+
     ##print("")
     ##print("")
 
@@ -53,7 +58,6 @@ def new_battle(room_number):
     c.execute("DELETE FROM actions WHERE room = " + str(room))
     c.execute("DELETE FROM game WHERE room = " + str(room))
     c.execute("DELETE FROM coins  WHERE room = " + str(room))
-
 
 
     #make map
@@ -125,13 +129,17 @@ def new_battle(room_number):
         healthMap[x][y] = 1
         c.execute("INSERT INTO coins (x,y,room) VALUES (?,?,?)", [x,y,room])
     conn.commit()
-
+    
+    print("NEW GAME IN ROOM: " + room)
+    print("PLAYERS: ", players)
+    print("SETTINGS: ", settings)
     # game started
     sys.path.append(os.path.dirname(__file__) + "/bots")
     while True:
-        if int(settings['stop_ticks'])!=0 and ticks>int(settings['stop_ticks']) or lifeplayers<int(settings['game_stop']):
+        if ticks%10 == 0:
+            print("current tick:"+str(ticks)+" in room:" + room)
+        if (ticks>int(settings['stop_ticks']) or lifeplayers<int(settings['game_stop'])):
             break
-##        print("current tick:"+str(ticks))
         #chices - dict with choices of all players
         choices = dict()
         ticks += 1
@@ -388,11 +396,19 @@ def new_battle(room_number):
     conn.commit()
     return settings
 if __name__ == "__main__":
-    while 1:
-        s = new_battle()
-        if s['mode']!='sandbox':
-            break
-        time.sleep(5)
+    print("clear-clear all players hist rooms \nelse-start a game in test(0) room")
+    x = input()
+    if x == "clear":
+        conn = sqlite3.connect(config.way + '/tanks.sqlite')
+        c = conn.cursor() 
+        c.execute("UPDATE players SET room = -1 WHERE room = NULL")
+        conn.close()
+    else:
+        while 1:
+            s = new_battle(0)
+            if s['mode']!='sandbox':
+                break
+            time.sleep(5)
 
 
 
