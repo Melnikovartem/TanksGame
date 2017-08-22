@@ -225,7 +225,7 @@ def make_testing():
                     coords[player]["x"] -= 1
                     
                 
-            if choices[player][:2] == "go":
+            if choices[player][:3] == "go_":
                     y_now = coords[player]["y"]
                     x_now = coords[player]["x"]
                     mainMap[x_now][y_now] = player
@@ -266,9 +266,6 @@ def make_testing():
 ##                        print(player + " (" + str(health[player]) + ") hits " + str(hit_player) + " (" + str(
                             health[hit_player]) + ")" + " [" + str(px) + " ," + str(py) + "] -> [" + str(px) + ", " + str(
                             y) + "] " + choices[player])
-
-
-
                         c.execute("UPDATE game SET life = " + str(health[hit_player]) + " WHERE key = ?", [hit_player])
                         break
             if choices[player] == "fire_down":
@@ -334,8 +331,8 @@ def make_testing():
 
                         c.execute("UPDATE game SET life = " + str(health[hit_player]) + " WHERE key = ?", [hit_player])
                         break
-
-            if choices[player] == "fire_up" or choices[player] == "fire_down" or choices[player] == "fire_left" or choices[player] == "fire_right":
+            
+            if choices[player][:5] == "fire_":
                 c.execute(
                     "UPDATE statistics SET kills = " + str(kills[player]) + " WHERE key = ?",
                     [player])
