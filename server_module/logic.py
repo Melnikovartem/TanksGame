@@ -44,7 +44,9 @@ def post_MainHandler(self):
         self.write("<script>alert('Ошибка загрузки!');location.href=location.href;</script>")
 
     sys.path.append(os.path.dirname(__file__) + "/../bots")
-def StateHandlerget(self):
+
+
+def get_StateHandler(self):
     conn = sqlite3.connect('../tanks.sqlite')
         c = conn.cursor()
         c.execute("SELECT * FROM settings")
@@ -130,7 +132,9 @@ def StateHandlerget(self):
             mainMap[x][y]='@'
         conn.commit()
         self.write(json.dumps(mainMap))
-def StatsHandlerget(self):
+
+
+def get_StatsHandler(self):
   conn = sqlite3.connect('../tanks.sqlite')
   gamestate=[]
   c = conn.cursor()
@@ -166,11 +170,13 @@ def StatsHandlerget(self):
         if len(l)>0 :
          life = l[0][0]
          gamestate.append({"name": name,"hp":life, "kills": kills,
-"lifetime": lifetime,"score": points, "shots": shots,"steps": steps,
-"quality": quality, "quality_class": quality_class, "lastCrash": lastCrash,
-"coins": coins})
-        self.render("stats.html", gamestate = sorted(gamestate, key=lambda k: -k['score'])) 
-def GameHandlerget(self):
+                "lifetime": lifetime,"score": points, "shots": shots,"steps": steps,
+                "quality": quality, "quality_class": quality_class, "lastCrash": lastCrash,
+                "coins": coins})
+        self.render("stats.html", gamestate = sorted(gamestate, key=lambda k: -k['score']))
+
+
+def get_GameHandler(self):
     conn = sqlite3.connect('../tanks.sqlite')
     c = conn.cursor()
     c.execute("SELECT * FROM settings")

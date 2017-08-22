@@ -10,15 +10,17 @@ class MainHandler(tornado.web.RequestHandler):
         logic.post_MainHandler(self)
 
 class StatsHandler(tornado.web.RequestHandler):
-    logic.StatsHandlerget(self)
+    def get(self)
+        logic.get_StatsHandler(self)
         
  
 class GameHandler(tornado.web.RequestHandler):
     def get(self):
-        
+        logic.get_GameHandler
 
 class StateHandler(tornado.web.RequestHandler):
-    logic.StateHandlerget(self)
+    def get(self:)
+        logic.get_StateHandler(self)
 
 class Application(tornado.web.Application):
     def __init__(self):
