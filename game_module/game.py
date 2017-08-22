@@ -156,7 +156,6 @@ def new_battle(room_number):
                 if mainMap[i][j] == '@':
                     historyMap[i][j] = 1
 
-
         for player in players:
             choices[player] = ""
 
@@ -168,17 +167,16 @@ def new_battle(room_number):
                 output_file = open("./bots/" + player + ".py", 'wb')
                 output_file.write(code[0])
                 output_file.close()
-                module = __import__(player, fromlist=["make_choice"])
-                module = imp.reload(module)
+                module = imp.import_module("bots." + player)
                 makeChoice = getattr(module, "make_choice")
 ##                print("Now running:" +player+" ("+names[player]+")")
                 if len(historyMap)==1:
                     choices[player] = makeChoice(int(coords[player]["x"]), int(coords[player]["y"]), historyMap); #тут выбор
                 else:
                     choices[player] = makeChoice(int(coords[player]["x"]), int(coords[player]["y"]), historyMap);  # тут выбор
-
             except Exception as e:
 ##                print(player+" ("+names[player]+") has crashed :( :"+str(e))
+                print(e)
                 history[player].append("crash")
                 choices[player] = "crash"
                 crashes[player]+=1
@@ -190,7 +188,7 @@ def new_battle(room_number):
                     "UPDATE statistics SET lastCrash = ? WHERE key = ?",
                     [str(e), player])
         conn.commit()
-
+        print(choices)
         #print(historyMap)
         #Analize what each user does
         for player in players:

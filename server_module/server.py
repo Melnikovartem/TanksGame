@@ -6,6 +6,7 @@ import sys
 import os
 import json
 import config
+import random
 from time import gmtime, strftime
 
 class MainHandler(tornado.web.RequestHandler):
@@ -18,40 +19,40 @@ class MainHandler(tornado.web.RequestHandler):
             c = conn.cursor()
             c.execute("SELECT * FROM players WHERE key = '%s'"%self.get_argument("key"))
             player = c.fetchone()
-            c.execute("SELECT * FROM settings WHERE room = 0")
+            c.execute("SELECT * FROM settings")
             result = c.fetchall()
             settings = dict()
             for string in result:
                 settings[string[1]] = string[2]
             if settings["mode"] == "sandbox":
+                '''
                 if player[3]=="waiting":
                     print(strftime("%Y-%m-%d %H:%M:%S", gmtime())+": "+player[2]+" ("+player[1]+") has loaded new bot")
                 else:
                     print(strftime("%Y-%m-%d %H:%M:%S", gmtime())+": "+player[2] + " (" + player[1] + ") has reloaded bot")
+                '''
                 c.execute("UPDATE players SET code = ? WHERE key = ?", [file['body'], player[2]])
                 c.execute("UPDATE players SET state = ? WHERE key = ?", ["ready", player[2]])
                 c.execute("UPDATE players SET room = ? WHERE key = ?", ["-1", player[2]])
-
-                conn.commit()
             else:
                 if player[3]=="waiting" or settings['game_state']!="running":
                     c.execute("UPDATE players SET state = ?", ["ready"])
                     c.execute("UPDATE players SET code = ?", [file['body']])
-                    conn.commit()
                 else:
                     self.write("<script>alert('Игра уже запущена!');location.href=location.href;</script>")
                     return
-
+            conn.commit()
+            conn.close()
             self.redirect("/game")
         except Exception as e:
-            print(e)
+###            print(e)
             self.write("<script>alert('Ошибка загрузки!');location.href=location.href;</script>")
 
         sys.path.append(os.path.dirname(__file__) + "/bots")
 
 class StatsHandler(tornado.web.RequestHandler):
     def get(self):
-        conn = sqlite3.connect(config.way + '/tanks.sqlite')
+        conn = sqlite3.connect(config.way + 'tanks.sqlite')
         gamestate=[]
         c = conn.cursor()
         c.execute("SELECT * FROM players WHERE room = 0" )
@@ -109,14 +110,14 @@ class GameHandler(tornado.web.RequestHandler):
 
 class StateHandler(tornado.web.RequestHandler):
     def get(self):
-        conn = sqlite3.connect(cofig.way + 'tanks.sqlite')
+        conn = sqlite3.connect(config.way + 'tanks.sqlite')
         c = conn.cursor()
         c.execute("SELECT * FROM settings")
         result = c.fetchall()
         settings = dict()
         for string in result:
             settings[string[1]] = string[2]
-        with open('../map.txt') as map_file:
+        with open(config.way + 'map.txt') as map_file:
             map_data = map_file.read()
             mainMap = map_data.split('\n')
             for i in range(len(mainMap)):
@@ -195,12 +196,36 @@ class StateHandler(tornado.web.RequestHandler):
         conn.commit()
         self.write(json.dumps(mainMap))
 
+class AddPlayer(tornado.web.RequestHandler):
+    def get(self):
+        key = self.get_argument("key", "")
+        self.render("add.html", key=key)
+    def post(self):
+        s=''
+        for i in range(6):
+            s=s+str(random.randint(0, 10))
+        key=s
+        name = self.get_argument("name", "")
+        conn = sqlite3.connect(config.way + 'tanks.sqlite')
+        c = conn.cursor()
+        c.execute("SELECT key FROM players WHERE name = '%s'"% name)
+        key_ = c.fetchall()
+        if len(key_) == 0:
+            c.execute("INSERT INTO players (name,key) VALUES (?,?)", [name,key])
+        else:
+            key = key_[0][0]
+        print(name, "Получил ключ:", key)
+        conn.commit()
+        conn.close()
+        self.redirect('/add?key='+key)
+
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [(r"/", MainHandler),
                 (r"/game", GameHandler),
                 (r"/state", StateHandler), 
                 (r"/stats", StatsHandler),
+                (r"/add",  AddPlayer),
                 (r'/static/(.*)', tornado.web.StaticFileHandler, 
                 {'path': os.path.dirname(__file__)+"static/"}),]
         settings = {}
