@@ -51,6 +51,7 @@ def make_testing():
 
     #make map
     #mainMap = [['.' for i in range(int(settings["height"]))] for j in range(int(settings["width"]))]
+    #mainMap - map with all matrix of the game with positions of some suff
     with open('../map.txt') as map_file:
         map_data = map_file.read()
         mainMap = map_data.split('\n')
@@ -60,7 +61,7 @@ def make_testing():
         settings["width"] = len(mainMap)
 
         print("size: {0} x {1}".format(settings["width"], settings["height"]))
-
+    # 2-nd map aff all matrix of the game (with health) 0-wal, some-player, 1-coin or wall
     healthMap = [[0 for i in range(int(settings["height"]))] for j in range(int(settings["width"]))]
     for i in range(len(mainMap)):
         for j in range(len(mainMap[0])):
@@ -68,7 +69,7 @@ def make_testing():
                 healthMap[i][j] = -1
 
     history = {}
-
+    #???? map for each parametr
     coords = dict()
     health = dict()
     errors = dict()
@@ -82,7 +83,7 @@ def make_testing():
     banlist = list()
 
 
-
+    #Set deafalt parametrs for players
     for player in players:
         coords[player] = dict()
         steps[player] = 0
@@ -118,11 +119,13 @@ def make_testing():
         c.execute("INSERT INTO coins (x,y) VALUES (?,?)", [x,y])
     conn.commit()
 
+    # game started
     sys.path.append(os.path.dirname(__file__) + "/bots")
-    while lifeplayers>int(settings['game_stop']):
-        if int(settings['stop_ticks'])!=0 and ticks>int(settings['stop_ticks']):
+    while True:
+        if int(settings['stop_ticks'])!=0 and ticks>int(settings['stop_ticks']) or lifeplayers<int(settings['game_stop']):
             break
         print("current tick:"+str(ticks))
+        #chices - dict with choices of all players
         choices = dict()
         ticks += 1
 
