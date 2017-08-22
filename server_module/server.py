@@ -15,6 +15,18 @@ class MainHandler(tornado.web.RequestHandler):
     def post(self):
         logic.post_MainHandler(self)
 
+class AddPlayer(tornado.web.RequestHandler):
+    generate=self.get_argument("generate")
+    if generate='True':
+        name = self.get_argument("name")
+        conn = sqlite3.connect('../tanks.sqlite')
+        c = conn.cursor()
+        c.execute('INSERT into Name values (name)')
+        import random
+        import string
+        token = ”.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(16))
+        c.execute('INSERT into Token values (token)')
+
 class StatsHandler(tornado.web.RequestHandler):
     def get(self):
         conn = sqlite3.connect('../tanks.sqlite')
@@ -167,6 +179,7 @@ class Application(tornado.web.Application):
                 (r"/game", GameHandler),
                 (r"/state", StateHandler), 
                 (r"/stats", StatsHandler),
+                (r"/add", AddPlayer),
                 (r'/static/(.*)', tornado.web.StaticFileHandler, 
                 {'path': os.path.dirname(__file__)+"/static/"}),]
         settings = {}
