@@ -58,11 +58,13 @@ class StatsHandler(tornado.web.RequestHandler):
         c.execute("SELECT * FROM players WHERE room = 0" )
         result = c.fetchall()
         names = dict()
+        stat = []
         for record in result:
             names[record[2]] = record[1]
-        c.execute("SELECT * FROM statistics WHERE room = 0")
-        result = c.fetchall()
-        for record in result:
+            c.execute("SELECT * FROM statistics WHERE key = " + record[2])
+            stat.append(c.fetchall())
+        for record_tuple in stat:
+            record = record_tuple[0]
             name = names[record[1]]
             kills = record[2]
             lifetime = record[3]
