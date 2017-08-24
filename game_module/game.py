@@ -47,17 +47,18 @@ def new_battle(room_number):
         ##print(string[0]+" - "+string[1])
         players.append(string[0])
         names[string[0]]=string[1]
-    for player in players:
+    for player in players[:6]:
         c.execute("UPDATE players SET room = ? WHERE key = ?",[room, player])
 
     ##print("")
     ##print("")
 
     #clear current state
-    c.execute("DELETE FROM statistics WHERE room = " + room)
+    for player in players:
+        c.execute("DELETE FROM statistics WHERE key = " + player)
     c.execute("DELETE FROM actions WHERE room = " + room)
     c.execute("DELETE FROM game WHERE room = " + room)
-    c.execute("DELETE FROM coins  WHERE room = " + room)
+    c.execute("DELETE FROM coins WHERE room = " + room)
 
 
     #make map
@@ -114,7 +115,7 @@ def new_battle(room_number):
         healthMap[x][y] = int(settings["max_health"])
         coords[player]["x"]=x
         coords[player]["y"] =y
-        c.execute("INSERT INTO statistics (key, room) VALUES (?,?)", [player, room])
+        c.execute("INSERT INTO statistics (key) VALUES (?)", [player])
         c.execute("INSERT INTO game (key,x,y,life,room) VALUES (?,?,?,?,?)", [player,x,y, str(health[player]), room])
     c.execute("UPDATE settings SET value = ? WHERE param = ?", ["running", "game_state"])
 
@@ -195,23 +196,23 @@ def new_battle(room_number):
             #We can say that player wants to go somewere        
             elif choices[player][:3] == "go_":
                 steps[player] += 1
-                    y_new, x_new = y_now, x_now
-                    direction = choices[3:]
-                    if direction == "up":
-                        y_new -= 1
-                    elif direction == "down":
-                        y_new += 1
-                    elif direction == "left":
-                        x_new -= 1
-                    elif direction == "right":
-                        x_new += 1
-                    # if the movement happens
-                    if x_new >= 0 and x _new < settings["width"] - 1 and y_new >= 0 and y_new < settings["height"] and mainMap[x_new][y_new] in ('.', '@'):
-                        if mainMap[x_new][y_new] == "@":
-                            coins[player] += 1
-                        c.execute("DELETE FROM coins WHERE x = ? AND y = ? AND room = ?", x_new, y_new, room])
+                y_new, x_new = y_now, x_now
+                direction = choices[player][3:]
+                if direction == "up":
+                    y_new -= 1
+                elif direction == "down":
+                    y_new += 1
+                elif direction == "left":
+                    x_new -= 1
+                elif direction == "right":
+                    x_new += 1
+                # weather the movement happens
+                if x_new >= 0 and x_new < settings["width"] - 1 and y_new >= 0 and y_new < settings["height"] and mainMap[x_new][y_new] in ('.', '@'):
+                    if mainMap[x_new][y_new] == "@":
+                        coins[player] += 1
+                    c.execute("DELETE FROM coins WHERE x = ? AND y = ? AND room = ?", [x_new, y_new, room])
                     mainMap[x_now][y_now] = "."
-                    mainMap[x_new][x_new] = player
+                    mainMap[x_new][y_new] = player
                     healthMap[x_now][y_now] = 0
                     healthMap[x_new][y_new] = health[player]
                     coords[player]["x"], coords[player]["y"] = x_new, y_new
@@ -219,11 +220,11 @@ def new_battle(room_number):
             #player wants to fire
             elif choices[player][:5] == "fire_":
                 shots[player] += 1
-                direction = chioces[plyer][5:]
+                direction = choices[player][5:]
                 step_x = -1
                 step_y = -1
-                to_x = now_x
-                to_y = now_y
+                to_x = x_now
+                to_y = y_now
                 if direction == "up":
                    to_y = -1
                 elif direction == "down":
@@ -234,8 +235,8 @@ def new_battle(room_number):
                 elif direction == "right":                   
                    to_x = settings["width"]
                    step_x = 1
-                for x_change in range(now_x+1, to_x , step_x):
-                    for y_change in range(now_y+1, to_y , step_y):
+                for x_change in range(x_now+1, to_x , step_x):
+                    for y_change in range(y_now+1, to_y , step_y):
                         if mainMap[x_change][y_change] == '#':
                             break
                         elif mainMap[x_change][y_change] not in ('.', '@'):
