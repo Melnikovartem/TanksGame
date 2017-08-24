@@ -15,90 +15,46 @@
             border-collapse: collapse;
             table-layout: fixed;
             width: 100%;
-        } 
-        
+        }
         p {
             margin: 0 !important;
-            position: absolute;
-            align: center;
         }
-
-        span {
-            position: absolute;
-            bottom: 5em;
-            align: center;
-        }
-
         body {
             background-image: url(static/grass.jpg);
             background-repeat: repeat;
-            #background-color: darkgreen;
         }
-	
         td {
             color: white;
-	    position: relative;
         }
-	
         .player
         {
             background-image: url(static/player.png);
-            background-size: contain;
-	    background-repeat: no-repeat;
-	    background-position: center;
+            background-size: cover;
         }
         .vertical
         {
             background-image: url(static/vertical.png);
             background-size: contain;
             background-position: center;
-	    background-repeat: no-repeat;
         }
         .horizontal
         {
             background-image: url(static/horizontal.png);
             background-size: contain;
             background-position: center;
-	    background-repeat: no-repeat;
         }
         .brick
         {
             background-image: url(static/brick.jpg);
             background-size: contain;
             background-position: center;
-	    background-repeat: no-repeat;
-
         }
         .coin
         {
             background-image: url(static/coin.png);
             background-size: contain;
             background-position: center;
-	    background-repeat: no-repeat;
         }
-        
-        table {
-                width:100%;
-            }
-        td {
-            text-align: center;
-            width:3%;
-            position:relative;
-        }
-        td:after{
-            content:'';
-            display:block;
-            margin-top:100%;
-        }
-        td .my_div {
-            position:absolute;
-            padding-top: 50;
-            top:0;
-            bottom:0;
-            left:0;
-            right:0;
-        }
-            
     </style>
     <script>
     var timerId = setInterval(function() {
@@ -115,11 +71,11 @@
                         if (item['hit']==1)
                         {
                             alert
-                            $('#'+j+'_'+i).html("<span style='color:red;'>"+"<span>"+item['life']+"</span>"+"</span><p style='font-size: 12px; line-height: 12px;'>"+item['name'].replace(" ", "<br/>")+'</p>');
+                            $('#'+j+'_'+i).html("<span style='color:red;'>"+item['life']+"</span><br><p style='font-size: 12px; line-height: 12px;'>"+item['name'].replace(" ", "<br/>")+'</p>');
                         }
                         else
                         {
-                            $('#'+j+'_'+i).html("<span>"+item['life']+"</span>"+"<p style='font-size: 12px; line-height: 12px;'>"+item['name'].replace(" ", "<br/>")+'</p>');
+                            $('#'+j+'_'+i).html(item['life']+"<br><p style='font-size: 12px; line-height: 12px;'>"+item['name'].replace(" ", "<br/>")+'</p>');
                         }
 
                     }
@@ -166,12 +122,10 @@
     {% for x in range(int(height)) %}
         <tr>
          {% for y in range(int(width)) %}
-            <td class="text-center" id="{{ x }}_{{ y }}"><div class="my_div"></div></td> 
+            <td  class="text-center" id="{{ x }}_{{ y }}">.</td>
          {% end %}
         </tr>
     {% end %}
     </table>
-
 </body>
-<!--адерс ссылки на стату через post-->
 </html>
