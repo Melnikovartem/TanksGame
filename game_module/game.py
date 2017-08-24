@@ -6,6 +6,7 @@ import os
 import importlib as imp
 import config
 from random import shuffle
+from itertools import product
 
 ## Before was a great system of print information by the game i will hide it by ##
 
@@ -163,7 +164,7 @@ def new_battle(room_number):
             try:
                 c.execute("SELECT code FROM players WHERE key = ?", [player])
                 code = c.fetchone()
-                output_file = open("./bots/" + player + ".py", 'wb')
+                output_file = open(config.way + "game_module/bots/" + player + ".py", 'wb')
                 output_file.write(code[0])
                 output_file.close()
                 module = imp.import_module("bots." + player)
@@ -223,30 +224,38 @@ def new_battle(room_number):
                 direction = choices[player][5:]
                 step_x = -1
                 step_y = -1
-                to_x = x_now
-                to_y = y_now
+                list_x = [x_now]
+                list_y = [y_now]
                 if direction == "up":
-                   to_y = -1
+                    list_y = range(y_now - 1, -1 , -1)
                 elif direction == "down":
-                   to_y = settings["height"]
-                   step_y = 1
+                    list_x = range(x_now + 1, settings["height"], 1)
                 elif direction == "left":
-                   to_x = -1
+                    list_x = range(x_now - 1, -1 , -1)
                 elif direction == "right":                   
-                   to_x = settings["width"]
-                   step_x = 1
-                for x_change in range(x_now+1, to_x , step_x):
-                    for y_change in range(y_now+1, to_y , step_y):
-                        if mainMap[x_change][y_change] == '#':
-                            break
-                        elif mainMap[x_change][y_change] not in ('.', '@'):
-                            hit_player = mainMap[x_change][y_change]
-                            health[hit_player] -= 1
-                            healthMap[x_change][y_change] -= 1
-                            kills[player] += 1
-                            c.execute("UPDATE game SET life = ? WHERE key = ?", [health[hit_player], hit_player])
-                            c.execute("UPDATE statistics SET kills = ?  WHERE key = ?", [kills[player], player])
-                            break
+                    list_x = range(x_now + 1, settings["width"], 1)
+                for x_change, y_change in product(list_x, list_y):
+                    #test
+                    try:
+                        useless = mainMap[x_change][y_change]
+                    except Exception as e:
+                        print(e)
+                        print(x_change, y_change)
+                        print(x_now, y_now)
+                        print(to_x, to_y)
+                        print(step_x, step_y)
+                        
+                    if mainMap[x_change][y_change] == '#':
+                        break
+                    elif mainMap[x_change][y_change] not in ('.', '@') and (x_change != x_now or y_change != y_now):
+                        hit_player = mainMap[x_change][y_change]
+                        health[hit_player] -= 1
+                        print(hit_player,":",health[hit_player],"<---",player, ":",health[player])
+                        healthMap[x_change][y_change] -= 1
+                        kills[player] += 1
+                        c.execute("UPDATE game SET life = ? WHERE key = ?", [health[hit_player], hit_player])
+                        c.execute("UPDATE statistics SET kills = ?  WHERE key = ?", [kills[player], player])
+                        break
             #all comands were checked
 
             if int(health[player])>0:
