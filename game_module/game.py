@@ -138,7 +138,7 @@ def new_battle(room_number):
     # game started
     sys.path.append(os.path.dirname(__file__) + "/bots")
     while True:
-        if ticks%10 == 0:
+        if ticks%50 == 0:
             print("current tick:"+str(ticks)+" in room:" + room)
         if (ticks>int(settings['stop_ticks']) or lifeplayers<int(settings['game_stop'])):
             break
@@ -235,22 +235,12 @@ def new_battle(room_number):
                 elif direction == "right":                   
                     list_x = range(x_now + 1, settings["width"], 1)
                 for x_change, y_change in product(list_x, list_y):
-                    #test
-                    try:
-                        useless = mainMap[x_change][y_change]
-                    except Exception as e:
-                        print(e)
-                        print(x_change, y_change)
-                        print(x_now, y_now)
-                        print(to_x, to_y)
-                        print(step_x, step_y)
                         
                     if mainMap[x_change][y_change] == '#':
                         break
                     elif mainMap[x_change][y_change] not in ('.', '@') and (x_change != x_now or y_change != y_now):
                         hit_player = mainMap[x_change][y_change]
                         health[hit_player] -= 1
-                        print(hit_player,":",health[hit_player],"<---",player, ":",health[player])
                         healthMap[x_change][y_change] -= 1
                         kills[player] += 1
                         c.execute("UPDATE game SET life = ? WHERE key = ?", [health[hit_player], hit_player])

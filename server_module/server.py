@@ -3,6 +3,7 @@ import tornado.web
 import tornado.httpserver 
 import web_game
 import web_site  
+import os
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -12,7 +13,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 class StatsHandler(tornado.web.RequestHandler):
     def get(self):
-        web_game.StatsHandler(self)
+        web_game.get_StatsHandler(self)
 
 class GameHandler(tornado.web.RequestHandler):
     def get(self):
@@ -35,8 +36,8 @@ class Application(tornado.web.Application):
                 (r"/state", StateHandler), 
                 (r"/stats", StatsHandler),
                 (r"/add",  AddPlayer),
-                (r'/static/(.*)', tornado.web.StaticFileHandler, 
-                {'path': os.path.dirname(__file__)+"styles/static/"}),]
+                (r'/styles/roctbb/(.*)', tornado.web.StaticFileHandler, 
+                {'path': os.path.dirname(__file__)+"styles/roctbb/"}),]
         settings = {}
         super(Application, self).__init__(handlers, **settings)
 
