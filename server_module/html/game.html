@@ -2,13 +2,14 @@
 <html lang="en" style="height: 100%;">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    <script src="styles/roctbb/jquery-3.1.0.min.js"></script>
-    <link rel="stylesheet" href="styles/roctbb/bootstrap.min.css">
+    <title>TanksGame</title>
+    <!-- Latest compiled and minified CSS -->
+    <script src="styles/jquery-3.1.0.min.js"></script>
+    <link rel="stylesheet" href="styles/bootstrap.min.css">
     <!-- Optional theme -->
-    <link rel="stylesheet" href="styles/roctbb/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="styles/bootstrap-theme.min.css">
     <!-- Latest compiled and minified JavaScript -->
-    <script src="styles/roctbb/bootstrap.min.js"></script>
+    <script src="styles/bootstrap.min.js"></script>
     <style>
         table {
             margin: 0 auto;
@@ -20,7 +21,7 @@
             margin: 0 !important;
         }
         body {
-            background-image: url(styles/roctbb/grass.jpg);
+            background-image: url(styles/{{style}}/grass.jpg);
             background-repeat: repeat;
         }
         td {
@@ -28,30 +29,30 @@
         }
         .player
         {
-            background-image: url(styles/roctbb/player.png);
+            background-image: url(styles/{{style}}/player.png);
             background-size: cover;
         }
         .vertical
         {
-            background-image: url(styles/roctbb/vertical.png);
+            background-image: url(styles/{{style}}/vertical.png);
             background-size: contain;
             background-position: center;
         }
         .horizontal
         {
-            background-image: url(styles/roctbb/horizontal.png);
+            background-image: url(styles/{{style}}/horizontal.png);
             background-size: contain;
             background-position: center;
         }
         .brick
         {
-            background-image: url(styles/roctbb/brick.jpg);
+            background-image: url(styles/{{style}}/brick.jpg);
             background-size: contain;
             background-position: center;
         }
         .coin
         {
-            background-image: url(styles/roctbb/coin.png);
+            background-image: url(styles/{{style}}/coin.png);
             background-size: contain;
             background-position: center;
         }

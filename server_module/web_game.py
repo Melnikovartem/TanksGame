@@ -22,7 +22,7 @@ def get_GameHandler(self):
             mainMap[i] = mainMap[i].split(' ')
         settings["height"] = len(mainMap[0])
         settings["width"] = len(mainMap)
-    self.render(config.way + "server_module/html/game.html", width=settings["width"], height=settings["height"])
+    self.render(config.way + "server_module/html/game.html", width=settings["width"], height=settings["height"], style = "roctbb")
         
 def get_StateHandler(self):
     conn = sqlite3.connect(config.way + 'tanks.sqlite')

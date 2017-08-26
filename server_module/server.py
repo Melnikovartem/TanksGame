@@ -7,6 +7,7 @@ import os
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
+        print(self.request.cookies)
         web_site.get_MainHandler(self)
     def post(self):
         web_site.post_MainHandler(self)
@@ -29,15 +30,36 @@ class AddPlayer(tornado.web.RequestHandler):
     def post(self):
         web_site.post_AddPlayer(self)
 
+class RegHandler(tornado.web.RequestHandler):
+    def get(self):
+        web_site.get_RegHandler(self)
+    def post(self):
+        web_site.post_RegHandler(self)
+
+class PlayerLobboyHandler(tornado.web.RequestHandler):
+    def get(self):
+        pass
+    def post(self):
+        pass
+
+class LoginHandler(tornado.web.RequestHandler):
+    def get(self):
+        pass
+    def post(self):
+        pass
+
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [(r"/", MainHandler),
+                (r"/login", LoginHandler),
+                (r"/regestration", RegHandler), 
+                (r"/playerlobby", PlayerLobboyHandler),
                 (r"/game", GameHandler),
                 (r"/state", StateHandler), 
                 (r"/stats", StatsHandler),
                 (r"/add",  AddPlayer),
-                (r'/styles/roctbb/(.*)', tornado.web.StaticFileHandler, 
-                {'path': os.path.dirname(__file__)+"styles/roctbb/"}),]
+                (r'/styles/(.*)', tornado.web.StaticFileHandler, 
+                {'path': os.path.dirname(__file__)+"styles/"}),]
         settings = {}
         super(Application, self).__init__(handlers, **settings)
 

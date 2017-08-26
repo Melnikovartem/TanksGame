@@ -6,7 +6,7 @@ import sqlite3
 import tornado.web
 
 def get_MainHandler(self):
-    self.render(config.way + "server_module/html/upload.html")
+    self.render(config.way + "server_module/html/index.html")
     
 def post__MainHandler(self):    
     try:
@@ -55,8 +55,38 @@ def post_AddPlayer(self):
             c.execute("INSERT INTO players (name,key) VALUES (?,?)", [name,key])
         else:
             key = key_[0][0]
-        print(name, "Получил ключ:", key)
         conn.commit()
         conn.close()
         self.redirect('/add?key='+key)
-    
+        
+def get_RegHandler(self):
+    self.render(config.way + "server_module/html/regestration.html")
+
+def post_RegHandler(self):
+    login = self.get_arguments("login")
+    name = login[0]
+    password = login[1]
+    if name == '' or password == '' or login[2] == '':
+        self.write("<script>alert('Заполните все поля');location.href=location.href;</script>")
+    elif password != login[2]:
+        self.write("<script>alert('Пароли не совпадают');location.href=location.href;</script>")
+    try:
+        c.execute("SELECT * FROM players where name = " +  name)
+        self.write("<script>alert('Пользователь с таким именем уже есть');location.href=location.href;</script>")
+        conn.close()
+    except:
+        key = ''
+        for i in range(6):
+            key = key + str(random.randint(0, 10))
+        conn = sqlite3.connect(config.way +'tanks.sqlite')
+        c = conn.cursor()
+        c.execute("INSERT INTO players (name, key, password) VALUES (?,?,?)", [name, key, password])
+        
+        cookie = self.request.cookies
+        try:
+            c.execute("UPDATE cookies SET key = ? WHERE cookie = ?", [key, cookies])
+        except:
+            c.execute("INSERT INTO cookies (cookie, key, style) VALUES (?,?,?)", [cookie, key,"roctbb"])
+        conn.commit()
+        conn.close()
+        self.redirect('/playerlobby)
