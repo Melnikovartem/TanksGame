@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <head lang="en">
     <meta charset="UTF-8">
@@ -14,17 +13,18 @@
 <div class="col-md-8 col-md-offset-3">
     <div class="col-md-7">
     <form method="POST" enctype="multipart/form-data">
-    <h1><a href='/game'>В лобби игр</a></h1>
-    <h3><a href='/login'>Войти</a></h3>
-        {% if name!="" %}
         <div class="form-group">
-        <a href='/playerlobby'>Войт за {{name}}</a></h3>
+        <label for="key">Ваше имя</label>
+        <input type="text" id = "name" name="login"  class="form-control"/>
+        <label for="key">Пароль</label>
+        <input type="password" id="password1" name="login"  class="form-control"/>
         </div>
-        {% end %}
-        </form>
-    <h3><a href='/regestration'>Регестрация</a></h3>
+        <div class="form-group">
+        <h3>
+        <button class='btn' type="submit" id='submit' name ='submit'>Войти</a></h3>
+        </div>
     </form>
     </div>
-    </div>
+</div>
 </body>
 </html>
