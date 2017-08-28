@@ -18,21 +18,22 @@
         <div class="form-group">
         <label for="file">Загрузить новый скрипт</label>
         <input type="file" name="file" id="file" class="form-control"/>
+        <div name = "style"></div>
         </div>
-        <input type="submit script"  name = "button" id = "_download" class="form-control"/>
+        <input type="submit"  name = "button" id = "_download" class="form-control"/>
     </form>
     <form method="POST" enctype="multipart/form-data">
-        <select size="3" multiple name="style">
-            <option disabled>Выберите cтиль</option>
-            <option selected value="roctbb">Рост</option>
-            <option value="space">Космос</option>
-        </select>
-        <input type="submit styles" name = "button" id = "_style" class="form-control"/>
+            <h4>Выберите cтиль</h4>
+            {% for i in styles %}
+            <input name = "style" type = "radio" value={{i[0]}}> {{i[1]}}</input>
+            <br>
+            {% end %}
+        <input type="submit" name = "button" id = "_style" class="form-control"/>
     </form>
         
     <div class="form-group">
         <h3>Ваш бот сейчас:</h3>
-        <h3><a href='/game'>К списку игр!</a></h3>
+        <h3><a href='/gamelist'>К списку игр!</a></h3>
     </div>
     </div>
     </div>

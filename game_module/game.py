@@ -10,7 +10,7 @@ from itertools import product
 
 ## Before was a great system of print information by the game i will hide it by ##
 
-def new_battle(room_number):
+def new_battle(room_number, map_):
     room = str(room_number)
     #работа с m файлами
     folder = config.way + 'game_module/bots'
@@ -130,6 +130,8 @@ def new_battle(room_number):
         mainMap[x][y] = '@'
         healthMap[x][y] = 1
         c.execute("INSERT INTO coins (x,y,room) VALUES (?,?,?)", [x,y,room])
+    c.execute("UPDATE rooms SET players=? WHERE key = ?", ["&".join(players), room])
+    c.execute("UPDATE rooms SET status=? WHERE key = ?", ["game", room])
     conn.commit()
     
     print("NEW GAME IN ROOM: " + room)
@@ -299,7 +301,7 @@ if __name__ == "__main__":
         conn.close()
     else:
         while 1:
-            s = new_battle(0)
+            s = new_battle(0, "")
             if s['mode']!='sandbox':
                 break
             time.sleep(5)

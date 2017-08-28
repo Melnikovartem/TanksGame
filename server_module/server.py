@@ -10,18 +10,12 @@ class MainHandler(tornado.web.RequestHandler):
         web_site.get_MainHandler(self)
     def post(self):
         web_site.post_MainHandler(self)
-
-class StatsHandler(tornado.web.RequestHandler):
+        
+class LoginHandler(tornado.web.RequestHandler):
     def get(self):
-        web_game.get_StatsHandler(self)
-
-class GameHandler(tornado.web.RequestHandler):
-    def get(self):
-        web_game.get_GameHandler(self)
-
-class StateHandler(tornado.web.RequestHandler):
-    def get(self):
-        web_game.get_StateHandler(self)
+        web_site.get_LoginHandler(self)
+    def post(self):
+        web_site.post_LoginHandler(self)
 
 class RegHandler(tornado.web.RequestHandler):
     def get(self):
@@ -35,12 +29,21 @@ class PlayerLobboyHandler(tornado.web.RequestHandler):
     def post(self):
         web_site.post_PlayerLobboyHandler(self)
 
-class LoginHandler(tornado.web.RequestHandler):
+class GameHandler(tornado.web.RequestHandler):
     def get(self):
-        web_site.get_LoginHandler(self)
-    def post(self):
-        web_site.post_LoginHandler(self)
-        
+        web_game.get_GameHandler(self)
+
+class GameListHandler(tornado.web.RequestHandler):
+    def get(self):
+        web_game.get_GameListHandler(self)
+
+class StateHandler(tornado.web.RequestHandler):
+    def get(self):
+        web_game.get_StateHandler(self)
+
+class StatsHandler(tornado.web.RequestHandler):
+    def get(self):
+        web_game.get_StatsHandler(self)
 
 class Application(tornado.web.Application):
     def __init__(self):
@@ -49,6 +52,7 @@ class Application(tornado.web.Application):
                 (r"/regestration", RegHandler), 
                 (r"/playerlobby", PlayerLobboyHandler),
                 (r"/game", GameHandler),
+                (r"/gamelist", GameListHandler),
                 (r"/state", StateHandler), 
                 (r"/stats", StatsHandler),
                 (r'/styles/(.*)', tornado.web.StaticFileHandler, 

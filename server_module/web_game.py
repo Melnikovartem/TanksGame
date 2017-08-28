@@ -47,9 +47,10 @@ def get_StateHandler(self):
     for record in result:
         names[record[2]] = record[1]
         c.execute("SELECT * FROM game WHERE key = " + record[2])
-        stat.append(c.fetchall())
-    for record_tuple in stat:
-        record = record_tuple[0]
+        stat.append(c.fetchone())
+    print(names)
+    print(stat)
+    for record in stat:
         name = names[record[1]]
         x = record[2]
         y = record[3]
@@ -117,9 +118,9 @@ def get_StatsHandler(self):
         for record in result:
             names[record[2]] = record[1]
             c.execute("SELECT * FROM statistics WHERE key = " + record[2])
-            stat.append(c.fetchall())
-        for record_tuple in stat:
-            record = record_tuple[0]
+            stat.append(c.fetchone())
+        conn.close()
+        for record in stat:
             name = names[record[1]]
             kills = record[2]
             lifetime = record[3]
@@ -146,5 +147,13 @@ def get_StatsHandler(self):
             gamestate.append({"name": name,"hp":life, "kills": kills, "lifetime": lifetime, "score": points, "shots": shots, "steps": steps, "quality": quality, "quality_class": quality_class, "lastCrash": lastCrash, "coins": coins})
         self.render(config.way + "server_module/html/stats.html", gamestate = sorted(gamestate, key=lambda k: -k['score']))
             
-            
-            
+def get_GameListHandler(self):
+    conn = sqlite3.connect(config.way + 'tanks.sqlite')
+    c = conn.cursor()
+    c.execute("SELECT * FROM rooms ORDER BY id" )
+    results = c.fetchall()
+    all_ = []
+    for i in results:
+        all_.append({"num":i[0], "name":i[1], "game":"/"+str(i[2]), "status":i[3], "players":i[4], "map":i[5]
+            })
+    self.render(config.way + "server_module/html/gamelist.html", rooms = all_)
