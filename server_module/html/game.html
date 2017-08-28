@@ -60,7 +60,7 @@
     <script>
     var timerId = setInterval(function() {
         $.ajax({
-          url: "/state",
+          url: "{{url}}",
           success: function(data){
             result = JSON.parse(data);
             result.forEach(function(line, i, arr) {

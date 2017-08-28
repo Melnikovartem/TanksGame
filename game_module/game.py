@@ -41,25 +41,26 @@ def new_battle(room_number, map_):
     c.execute("SELECT key, name FROM players WHERE state = 'ready' AND room = -1")
     result = c.fetchall()
     shuffle(result)
-    players = list()
+    players_not = list()
     ##print("CURRENT PLAYERS:") 
     #6 random bots
     for string in result:
         ##print(string[0]+" - "+string[1])
-        players.append(string[0])
+        players_not.append(string[0])
         names[string[0]]=string[1]
-    for player in players[:6]:
+    players = []
+    for player in players_not[:6]:
         c.execute("UPDATE players SET room = ? WHERE key = ?",[room, player])
+        players.append(player)
 
     ##print("")
     ##print("")
 
     #clear current state
-    for player in players:
-        c.execute("DELETE FROM statistics WHERE key = " + player)
-    c.execute("DELETE FROM actions WHERE room = " + room)
-    c.execute("DELETE FROM game WHERE room = " + room)
-    c.execute("DELETE FROM coins WHERE room = " + room)
+    c.execute("DELETE FROM statistics WHERE room = ?",  [room] )
+    c.execute("DELETE FROM actions WHERE room = ?",  [room] )
+    c.execute("DELETE FROM game WHERE room = ?",  [room] )
+    c.execute("DELETE FROM coins WHERE room = ?",  [room] )
 
 
     #make map
@@ -116,9 +117,8 @@ def new_battle(room_number, map_):
         healthMap[x][y] = int(settings["max_health"])
         coords[player]["x"]=x
         coords[player]["y"] =y
-        c.execute("INSERT INTO statistics (key) VALUES (?)", [player])
+        c.execute("INSERT INTO statistics (key, room) VALUES (?, ?)", [player, room])
         c.execute("INSERT INTO game (key,x,y,life,room) VALUES (?,?,?,?,?)", [player,x,y, str(health[player]), room])
-    c.execute("UPDATE settings SET value = ? WHERE param = ?", ["running", "game_state"])
 
     #generating 10 coins
     for i in range(10):
@@ -147,6 +147,8 @@ def new_battle(room_number, map_):
         #choices - dict with choices of all players
         choices = dict()
         ticks += 1
+        c.execute("UPDATE rooms SET tick=? WHERE key = ?", [ticks, room])
+
 
         historyMap = [[0 for i in range(int(settings["height"]))] for j in range(int(settings["width"]))]
 
@@ -171,10 +173,7 @@ def new_battle(room_number, map_):
                 output_file.close()
                 module = imp.import_module("bots." + player)
                 makeChoice = getattr(module, "make_choice")
-                if len(historyMap)==1:
-                    choices[player] = makeChoice(int(coords[player]["x"]), int(coords[player]["y"]), historyMap); #тут выбор
-                else:
-                    choices[player] = makeChoice(int(coords[player]["x"]), int(coords[player]["y"]), historyMap);  # тут выбор
+                choices[player] = makeChoice(int(coords[player]["x"]), int(coords[player]["y"]), historyMap) # тут выбор
             except Exception as e:
                 choices[player] = "crash"
                 crashes[player]+=1
@@ -210,7 +209,7 @@ def new_battle(room_number, map_):
                 elif direction == "right":
                     x_new += 1
                 # weather the movement happens
-                if x_new >= 0 and x_new < settings["width"] - 1 and y_new >= 0 and y_new < settings["height"] and mainMap[x_new][y_new] in ('.', '@'):
+                if x_new >= 0 and x_new < settings["width"] - 1 and y_new >= 0 and y_new < settings["height"] and mainMap[x_new][y_new] in ('.', '@') and mainMap[x_new][y_new] in (".", "@"):
                     if mainMap[x_new][y_new] == "@":
                         coins[player] += 1
                     c.execute("DELETE FROM coins WHERE x = ? AND y = ? AND room = ?", [x_new, y_new, room])
@@ -224,8 +223,6 @@ def new_battle(room_number, map_):
             elif choices[player][:5] == "fire_":
                 shots[player] += 1
                 direction = choices[player][5:]
-                step_x = -1
-                step_y = -1
                 list_x = [x_now]
                 list_y = [y_now]
                 if direction == "up":
@@ -237,7 +234,6 @@ def new_battle(room_number, map_):
                 elif direction == "right":                   
                     list_x = range(x_now + 1, settings["width"], 1)
                 for x_change, y_change in product(list_x, list_y):
-                        
                     if mainMap[x_change][y_change] == '#':
                         break
                     elif mainMap[x_change][y_change] not in ('.', '@') and (x_change != x_now or y_change != y_now):
@@ -280,8 +276,9 @@ def new_battle(room_number, map_):
         #db record
         conn.commit()
         #tick ends
-        time.sleep(1.2)
     #after game
+    c.execute("UPDATE rooms SET status=? WHERE key = ?", ["ready", room])
+    c.execute("UPDATE rooms SET tick=? WHERE key = ?", [-1, room])
     c.execute("UPDATE settings SET value = ? WHERE param = ?", ["stop", "game_state"])
     c.execute("UPDATE players SET room = -1 WHERE room = " + room)
     conn.commit()
@@ -297,9 +294,20 @@ if __name__ == "__main__":
         conn = sqlite3.connect(config.way + '/tanks.sqlite')
         c = conn.cursor() 
         c.execute("UPDATE players SET room = -1")
+        c.execute("DELETE FROM statistics")
+        c.execute("DELETE FROM actions")
+        c.execute("DELETE FROM game")
+        c.execute("DELETE FROM coins")
+        c.execute("DELETE FROM rooms")
         conn.commit()
         conn.close()
     else:
+        conn = sqlite3.connect(config.way + '/tanks.sqlite')
+        c = conn.cursor()
+        c.execute("DELETE FROM rooms WHERE key = ?",["0"])
+        c.execute("INSERT INTO rooms (name, key, status, map) VALUES (?, ?, ?, ?)", ["test_zone", 0, "ready", ""])
+        conn.commit()
+        conn.close()
         while 1:
             s = new_battle(0, "")
             if s['mode']!='sandbox':

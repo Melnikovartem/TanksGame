@@ -12,23 +12,21 @@
     <script src="styles/bootstrap.min.js"></script>
     <script>
     var timerId = setTimeout(function() {
-        location.href='/stats';
+        location.href='/gamelist';
     }, 5000);
-
-
-
     </script>
 </head>
 <body>
     <table cellspacing="0" class="table">
-        <tr><th>#</th><th>Название комнаты</th><th>Сейчас в комнате</th><th>Статус</th><th>Карта</th>
-    {% for i in rooms %}
+        <tr><th>#</th><th>Ход</th><th>Название комнаты</th><th>Статистика комнаты</th><th>Сейчас в комнате</th><th>Статус</th><th>Карта</th>
+    {% for i in range(len(rooms)) %}
         <tr>
-            <td>{{i["num"]}}</td>
-            <td><a href = {{i["game"]}}>{{i["name"]}}</td>
-            <td>{{i["players"]}}</td>
-            <td>{{i["status"]}}</td>
-            <td>{{i["map"]}}</td>
+            <td>{{i}}</td><td>{{rooms[i]["tick"]}}</td>
+            <td><a href = {{rooms[i]["game"]}}>{{rooms[i]["name"]}}</td>
+            <td><a href = {{rooms[i]["stats"]}}>Статистика</td>
+            <td>{{rooms[i]["players"]}}</td>
+            <td>{{rooms[i]["status"]}}</td>
+            <td>{{rooms[i]["map"]}}</td>
         </tr>
     {% end %}
     </table>

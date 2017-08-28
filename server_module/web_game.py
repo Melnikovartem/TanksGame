@@ -8,6 +8,12 @@ from itertools import product
 
 
 def get_GameHandler(self):
+    room = "0"
+    try:
+        room = self.get_argument("room")
+    except:
+        pass
+    style = "roctbb"
     conn = sqlite3.connect(config.way + 'tanks.sqlite')
     c = conn.cursor()
     c.execute("SELECT * FROM settings")
@@ -22,9 +28,20 @@ def get_GameHandler(self):
             mainMap[i] = mainMap[i].split(' ')
         settings["height"] = len(mainMap[0])
         settings["width"] = len(mainMap)
-    self.render(config.way + "server_module/html/game.html", width=settings["width"], height=settings["height"], style = "roctbb")
+    try:
+        c.execute("SELECT style FROM cookies WHERE cookie = ?", [self.get_cookie("TanksGame")])
+        style = c.fetchone()[0]
+    except:
+        pass
+    conn.close()
+    self.render(config.way + "server_module/html/game.html", width=settings["width"], height=settings["height"], style = style, url ="/state?room=" + room )
         
 def get_StateHandler(self):
+    room = "0"
+    try:
+        room = self.get_argument("room")
+    except:
+        pass
     conn = sqlite3.connect(config.way + 'tanks.sqlite')
     c = conn.cursor()
     c.execute("SELECT * FROM settings")
@@ -40,16 +57,15 @@ def get_StateHandler(self):
         settings["height"] = len(mainMap[0])
         settings["width"] = len(mainMap)
         
-    c.execute("SELECT * FROM players WHERE room = 0")
+    c.execute("SELECT * FROM players WHERE room = ?", [room])
     result = c.fetchall()
     names=dict()
     stat = []
     for record in result:
         names[record[2]] = record[1]
-        c.execute("SELECT * FROM game WHERE key = " + record[2])
-        stat.append(c.fetchone())
-    print(names)
-    print(stat)
+        c.execute("SELECT * FROM game WHERE key = ?", [record[2]])
+        some = c.fetchone()
+        stat.append(some)
     for record in stat:
         name = names[record[1]]
         x = record[2]
@@ -57,36 +73,31 @@ def get_StateHandler(self):
         life = record[4]
         name = names[record[1]]
         mainMap[x][y] = {'name': name, 'life': life, 'hit': 0}
-    for record in result:
-        x = record[2]
-        y = record[3]
-        c.execute("SELECT value FROM actions WHERE key = ? AND room = 0 ORDER BY id DESC LIMIT 1", [record[1]])
-        action = c.fetchall()
-        if len(action)<1:
-            continue
-        action=action[0]
+    for record in stat:
+        x = int(record[2])
+        y = int(record[3])
+        c.execute("SELECT value FROM actions WHERE key = ? AND room = ? ORDER BY id", [record[1], room])
+        action = c.fetchone()[0]
         #draw an error
-        if action[0][:5] == "fire_":
+        if action[:5] == "fire_":
             direction = action[5:]
-            step_x = -1
-            step_y = -1
             list_x = [x]
             list_y = [y]
             type_arr = "."
             if direction == "up":
-                list_y = range(y_now - 1, -1 , -1)
+                list_y = range(y - 1, -1 , -1)
                 type_arr = '&uarr;'
             elif direction == "down":
-                list_x = range(x_now + 1, settings["height"], 1)
+                list_x = range(y + 1, settings["height"], 1)
                 type_arr = '&darr;'
             elif direction == "left":
-                list_x = range(x_now - 1, -1 , -1)
+                list_x = range(x - 1, -1 , -1)
                 type_arr = '&larr;'
             elif direction == "right":                   
-                list_x = range(x_now + 1, settings["width"], 1)
+                list_x = range(x + 1, settings["width"], 1)
                 type_arr = '&rarr;'
             for x_change, y_change in product(list_x, list_y):
-                if mainMap[x_change][y_change] != '.' and mainMap[x_change][y_change] != '&uarr;' and mainMap[x_change][y_change] != '&darr;' and mainMap[x_change][y_change] != '&larr;' and mainMap[x_change][y_change] != '&rarr;' and mainMap[x_change][y_change] != '#' and mainMap[x_change][y_change] != '@':
+                if not mainMap[x_change][y_change] in ('.', '&uarr;', '&darr;', '&larr;', '&rarr;', '#', '@'):
                     mainMap[x_change][y_change]['hit']=1
                     break
                 elif mainMap[x_change][y_change] == '#' or mainMap[x_change][y_change] == '@':
@@ -94,11 +105,10 @@ def get_StateHandler(self):
                 else:
                     mainMap[x_change][y_change] = type_arr
     
-    for record_tuple in stat:
-        record = record_tuple[0]
+    for record in stat:
         if record[4]<=0:
-            c.execute("DELETE FROM game WHERE id = ? AND room = 0", [record[0]])
-    c.execute("SELECT * FROM coins WHERE room = 0")
+            c.execute("DELETE FROM game WHERE id = ?", [record[0]])
+    c.execute("SELECT * FROM coins WHERE room = ?", [room])
     result = c.fetchall()
     for record in result:
         x = record[0]
@@ -108,44 +118,51 @@ def get_StateHandler(self):
     self.write(json.dumps(mainMap))
 
 def get_StatsHandler(self):
-        conn = sqlite3.connect(config.way + 'tanks.sqlite')
-        gamestate=[]
-        c = conn.cursor()
-        c.execute("SELECT * FROM players WHERE room = 0" )
-        result = c.fetchall()
-        names = dict()
-        stat = []
-        for record in result:
-            names[record[2]] = record[1]
-            c.execute("SELECT * FROM statistics WHERE key = " + record[2])
-            stat.append(c.fetchone())
-        conn.close()
-        for record in stat:
-            name = names[record[1]]
-            kills = record[2]
-            lifetime = record[3]
-            shots = record[5]
-            steps = record[4]
-            crashes = record[6]
-            errors = record[7]
-            lastCrash = record[8]
-            coins = record[9]
-            quality = "good"
-            quality_class = "label-success"
-            if (crashes>0):
-                quality_class = "label-danger"
-                quality = "crash"
-            elif (errors>0):
-                quality = "errors"
-                quality_class = "label-warning"
-            points = coins*50 + kills*20+lifetime-crashes*5
-            life = 0
-            c.execute("SELECT life FROM game WHERE key = ? AND room = 0", [record[1]])
-            l = c.fetchall()
-            if len(l)>0 :
-                life = l[0][0]
-            gamestate.append({"name": name,"hp":life, "kills": kills, "lifetime": lifetime, "score": points, "shots": shots, "steps": steps, "quality": quality, "quality_class": quality_class, "lastCrash": lastCrash, "coins": coins})
-        self.render(config.way + "server_module/html/stats.html", gamestate = sorted(gamestate, key=lambda k: -k['score']))
+    room = "0"
+    try:
+        room = self.get_argument("room")
+    except:
+        pass
+    conn = sqlite3.connect(config.way + 'tanks.sqlite')
+    gamestate=[]
+    c = conn.cursor()
+    c.execute("SELECT * FROM players WHERE room = ?", [room])
+    result = c.fetchall()
+    names = dict()
+    stat = []
+    for record in result:
+        names[record[2]] = record[1]
+        c.execute("SELECT * FROM statistics WHERE key = ?", [record[2]])
+        some = c.fetchone()
+        stat.append(some)
+    for record in stat:
+        name = names[record[1]]
+        kills = record[2]
+        lifetime = record[3]
+        shots = record[5]
+        steps = record[4]
+        crashes = record[6]
+        errors = record[7]
+        lastCrash = record[8]
+        coins = record[9]
+        quality = "good"
+        quality_class = "label-success"
+        if (crashes>0):
+            quality_class = "label-danger"
+            quality = "crash"
+        elif (errors>0):
+            quality = "errors"
+            quality_class = "label-warning"
+        points = coins*50 + kills*20+lifetime-crashes*5
+        life = 0
+        c.execute("SELECT life FROM game WHERE key = ? AND room = ?", [record[1], room])
+        l = c.fetchall()
+        if len(l)>0 :
+            life = l[0][0]
+        gamestate.append({"name": name,"hp":life, "kills": kills, "lifetime": lifetime, "score": points, "shots": shots, "steps": steps, "quality": quality, "quality_class": quality_class, "lastCrash": lastCrash, "coins": coins})
+    
+    conn.close()
+    self.render(config.way + "server_module/html/stats.html", gamestate = sorted(gamestate, key=lambda k: -k['score']))
             
 def get_GameListHandler(self):
     conn = sqlite3.connect(config.way + 'tanks.sqlite')
@@ -154,6 +171,16 @@ def get_GameListHandler(self):
     results = c.fetchall()
     all_ = []
     for i in results:
-        all_.append({"num":i[0], "name":i[1], "game":"/"+str(i[2]), "status":i[3], "players":i[4], "map":i[5]
+        players = []
+        try:
+            for j in i[5].split("&"):
+                if j != "":
+                    c.execute("SELECT name FROM players WHERE key = ?", [j])
+                    name = c.fetchone()
+                    players.append(name[0])
+        except:
+            pass
+        all_.append({"name":i[1], "game":"/game?room="+str(i[2]), "stats":"/stats?room="+str(i[2]), "status":i[3], "tick": i[4], "players":" | ".join(players), "map":i[6]
             })
+    conn.close()
     self.render(config.way + "server_module/html/gamelist.html", rooms = all_)

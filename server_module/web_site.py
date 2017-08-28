@@ -1,5 +1,5 @@
 #logic -> all other web stuff
-
+# ssry for all this try
 import random
 import config
 import sqlite3
@@ -12,9 +12,9 @@ def get_MainHandler(self):
     c = conn.cursor()
     if self.get_cookie("TanksGame"):
         try:
-            c.execute("SELECT key FROM cookies where cookie = " +  self.get_cookie("TanksGame"))
+            c.execute("SELECT key FROM cookies where cookie = ?", [self.get_cookie("TanksGame")])
             key = key = str(c.fetchone()[0])
-            c.execute("SELECT name FROM players where key = " +  key)
+            c.execute("SELECT name FROM players where key = ?", [key])
             name = c.fetchone()[0]
         except Exception as e:
             pass
@@ -23,20 +23,33 @@ def get_MainHandler(self):
     
 def get_PlayerLobboyHandler(self):
     name = "Error"
+    status = "error"
     conn = sqlite3.connect(config.way +'tanks.sqlite')
     c = conn.cursor()
     if self.get_cookie("TanksGame"):
         try:
-            c.execute("SELECT key FROM cookies where cookie = " +  self.get_cookie("TanksGame"))
+            c.execute("SELECT key FROM cookies WHERE cookie = ?", [self.get_cookie("TanksGame")])
             key = key = str(c.fetchone()[0])
-            c.execute("SELECT name FROM players where key = " +  key)
+            c.execute("SELECT name FROM players WHERE key = ?", [key])
             name = c.fetchone()[0]
         except Exception as e:
             pass
+    
+    try:
+        c.execute("SELECT room FROM players WHERE key = ?", [key])
+        room = c.fetchone()[0]
+        if room == "-1":
+            status = "бот отдыхает"
+        else:
+            c.execute("SELECT name FROM rooms WHERE key = ?", [room])
+            status = "бот в комнате "
+    except Exception as e:
+        pass
+    
     c.execute("SELECT key, name FROM styles")
     styles = c.fetchall()
     conn.close()
-    self.render(config.way + "server_module/html/playerlobby.html", name = name, styles = styles)
+    self.render(config.way + "server_module/html/playerlobby.html", name = name, styles = styles, status = status)
     
 def post_PlayerLobboyHandler(self): 
     conn = sqlite3.connect(config.way +'tanks.sqlite')
@@ -52,10 +65,10 @@ def post_PlayerLobboyHandler(self):
         c.execute("UPDATE cookies SET style = ? WHERE cookie = ?", [style, cookie])
     else:
         try:
-            c.execute("SELECT key FROM cookies where cookie = " +  self.get_cookie("TanksGame"))
+            c.execute("SELECT key FROM cookies WHERE cookie = ?", [self.get_cookie("TanksGame")])
             key = str(c.fetchone()[0])
             file = self.request.files['file'][0]
-            c.execute("SELECT * FROM players WHERE key = " + key)
+            c.execute("SELECT * FROM players WHERE key = ?", [key])
             player = c.fetchone()
             c.execute("SELECT * FROM settings")
             result = c.fetchall()
@@ -110,8 +123,12 @@ def post_RegHandler(self):
             c.execute("INSERT INTO cookies (cookie, key, style) VALUES (?,?,?)", [cookie, key, "roctbb"])
         else:
             cookie = self.get_cookie("TanksGame")
-            c.execute("UPDATE cookies SET key = ? WHERE cookie = ?", [key, cookie])
-        
+            try:
+                c.execute("SELECT * FROM cookies WHERE cookie = ?", [cookie] )
+                c.execute("UPDATE cookies SET key = ? WHERE cookie = ?", [key, cookie])
+            except Exception as e:
+                c.execute("INSERT INTO cookies (cookie, key, style) VALUES (?,?,?)", [cookie, key, "roctbb"])
+                
         c.execute("INSERT INTO players (name, key, password) VALUES (?,?,?)", [name, key, password])
         conn.commit()
         conn.close()
@@ -127,12 +144,12 @@ def post_LoginHandler(self):
     conn = sqlite3.connect(config.way +'tanks.sqlite')
     c = conn.cursor()
     try:
-        c.execute("SELECT (password) FROM players WHERE name = " +  name)
+        c.execute("SELECT password FROM players WHERE name = ?",[name])
         password_real = c.fetchall()
         if password_real[0][0] != password:
             self.write("<script>alert('Неправильный пароль');location.href=location.href;</script>")
         elif password_real[0][0] == password:
-            c.execute("SELECT (key) FROM players WHERE name = " +  name)
+            c.execute("SELECT key FROM players WHERE name = ?",[name])
             key_ = c.fetchall()[0][0]
             if not self.get_cookie("TanksGame"):
                 cookie = ''
@@ -142,9 +159,12 @@ def post_LoginHandler(self):
                 c.execute("INSERT INTO cookies (cookie, key, style) VALUES (?,?,?)", [cookie, key_, "roctbb"])
             else:
                 cookie = self.get_cookie("TanksGame")
-                c.execute("UPDATE cookies SET key = ? WHERE cookie = ?", [key_, cookie])
+                try:
+                    c.execute("SELECT * FROM cookies WHERE cookie = ?", [cookie] )
+                    c.execute("UPDATE cookies SET key = ? WHERE cookie = ?", [key_, cookie])
+                except Exception as e:
+                    c.execute("INSERT INTO cookies (cookie, key, style) VALUES (?,?,?)", [cookie, key_, "roctbb"])
             conn.commit()
-            conn.close()
             
             self.redirect('/playerlobby')
     except Exception as e:
