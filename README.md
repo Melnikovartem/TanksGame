@@ -64,28 +64,17 @@ def make_choice(x,y,field):
 First all players move and just then fire.
 
 ###### Before map about game objects: (all images from "Рост" style. It is my friend(or i just think so))
-    * __BackGround__ = Just BG.
-    
-        ![BG](./server_module/styles/roctbb/grass.jpg)
-	
-    * __Tanks__ = Different players bots.
-    
-        ![Tans](./server_module/styles/roctbb/player.png)
-	
-    * __Wals__ = Tanks can't step _on_ walls and fire through them.
-    
-        ![Walls](./server_module/styles/roctbb/brick.png)
-    
-    * __Coins__ = You need to step on a coin to get some score points.
-    
-    	![Coins](./server_module/styles/roctbb/coin.png)
-    
-    * __Lasers__ = show shots of users.
-        
-	![Lasers](./server_module/styles/roctbb/vertical.png)
-        
-	![Lasers](./server_module/styles/roctbb/horizontal.png)
-    
+* __BackGround__ = Just BG.    
+![BG](/server_module/styles/roctbb/grass.jpg)	
+* __Tanks__ = Different players bots.    
+![Tans](/server_module/styles/roctbb/player.png)	
+* __Wals__ = Tanks can't step _on_ walls and fire through them.   
+![Walls](/server_module/styles/roctbb/brick.png)    
+* __Coins__ = You need to step on a coin to get some score points.    
+![Coins](/server_module/styles/roctbb/coin.png)    
+* __Lasers__ = show shots of users.        
+![Lasers](/server_module/styles/roctbb/vertical.png)        
+![Lasers](/server_module/styles/roctbb/horizontal.png)    
     
 ###### Field Map:
 	* I will write it later
