@@ -69,7 +69,7 @@ First all players move and just then fire.
 * __Tanks__ = Different players bots.    
 ![Tans](/server_module/styles/roctbb/player.png)	
 * __Wals__ = Tanks can't step _on_ walls and fire through them.   
-![Walls](/server_module/styles/roctbb/brick.jpg)    
+###Image is yoo nig
 * __Coins__ = You need to step on a coin to get some score points.    
 ![Coins](/server_module/styles/roctbb/coin.png)    
 * __Lasers__ = show shots of users.        
