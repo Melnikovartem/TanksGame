@@ -1,5 +1,5 @@
 # TanksGame
-New game that i want to make for programmers
+New game that i wanted to make for programmers for a long time
 
 So in this game you have a tank and need to get the heightest score by your tank, but just by python script. 
 
