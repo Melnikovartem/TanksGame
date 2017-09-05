@@ -26,7 +26,7 @@ About the modules:
 ## Docs for the game
 This is game were you need to get heightest score.
 
-###### Score
+#### Score
 Final score is calculated by formula:
 ```python score = coins*50 + hittings*20+lifetime-crashes*5```
 
@@ -36,7 +36,7 @@ Where:
 * Lifetime - how may ticks you's bot was alive
 * Crashes - how may ticks you's bot crashed
 
-###### Your script
+#### Your script
 So your bot(tank) __must__ have function __make_choice__ that gets 3 arguments:
     1. X coordinate of your bot 
     2. Y coordinate of your bot
@@ -49,7 +49,7 @@ def make_choice(x,y,field):
     return choice(["fire_right", "fire_down", "fire_left", "fire_up", "go_right", "go_down", "go_left", "go_up"])
 ```
 
-###### And you need to choose between this commands:
+#### And you need to choose between this commands:
 *Commands to move:
 	1. "go_right"
 	2. "go_down"
@@ -63,20 +63,20 @@ def make_choice(x,y,field):
 
 First all players move and just then fire.
 
-###### Before map about game objects: (all images from "Рост" style. It is my friend(or i just think so))
+#### Before map about game objects: (all images from "Рост" style. It is my friend(or i just think so))
 * __BackGround__ = Just BG.    
 ![BG](/server_module/styles/roctbb/grass.jpg)	
 * __Tanks__ = Different players bots.    
 ![Tans](/server_module/styles/roctbb/player.png)	
 * __Wals__ = Tanks can't step _on_ walls and fire through them.   
-![Walls](/server_module/styles/roctbb/brick.png)    
+![Walls](/server_module/styles/roctbb/brick.jpg)    
 * __Coins__ = You need to step on a coin to get some score points.    
 ![Coins](/server_module/styles/roctbb/coin.png)    
 * __Lasers__ = show shots of users.        
 ![Lasers](/server_module/styles/roctbb/vertical.png)        
 ![Lasers](/server_module/styles/roctbb/horizontal.png)    
     
-###### Field Map:
+#### Field Map:
 	* I will write it later
 
 Have Fun :)
