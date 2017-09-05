@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100%;">
-<head>
+<html>
+<head lang="en">
     <meta charset="UTF-8">
     <title>TanksGame</title>
     <!-- Latest compiled and minified CSS -->
@@ -11,51 +11,84 @@
     <!-- Latest compiled and minified JavaScript -->
     <script src="styles/bootstrap.min.js"></script>
     <style>
-        table {
+         table {
             margin: 0 auto;
             border-collapse: collapse;
             table-layout: fixed;
             width: 100%;
-        }
+        } 
         p {
             margin: 0 !important;
         }
         body {
             background-image: url(styles/{{style}}/grass.jpg);
             background-repeat: repeat;
+            #background-color: darkgreen;
         }
+
         td {
             color: white;
         }
+
         .player
         {
             background-image: url(styles/{{style}}/player.png);
-            background-size: cover;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
         }
         .vertical
         {
             background-image: url(styles/{{style}}/vertical.png);
             background-size: contain;
             background-position: center;
+            background-repeat: no-repeat;
         }
         .horizontal
         {
             background-image: url(styles/{{style}}/horizontal.png);
             background-size: contain;
             background-position: center;
+            background-repeat: no-repeat;
         }
         .brick
         {
             background-image: url(styles/{{style}}/brick.jpg);
             background-size: contain;
             background-position: center;
+            background-repeat: no-repeat;
+
         }
         .coin
         {
             background-image: url(styles/{{style}}/coin.png);
             background-size: contain;
             background-position: center;
+            background-repeat: no-repeat;
         }
+        
+        table {
+                width:100%;
+            }
+        td {
+            text-align: center;
+            width:3%;
+            position:relative;
+        }
+        td:after{
+            content:'';
+            display:block;
+            margin-top:100%;
+        }
+        td .my_div {
+            position:absolute;
+            padding-top: 50;
+            top:0;
+            bottom:0;
+            left:0;
+            right:0;
+        }
+            
     </style>
     <script>
     var timerId = setInterval(function() {

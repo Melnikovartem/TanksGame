@@ -18,10 +18,9 @@ def new_battle(room_number, map_):
         file_path = os.path.join(folder, the_file)
         try:
             if os.path.isfile(file_path) and file_path.find(".m")!=-1:
-                ##print(the_file)
                 os.unlink(file_path)
         except Exception as e:
-            print(e)
+            pass
 
 #    conn = sqlite3.connect(config.way + "/rooms/" + numer + '/tanks.sqlite')
     conn = sqlite3.connect(config.way + '/tanks.sqlite')
@@ -33,19 +32,15 @@ def new_battle(room_number, map_):
     settings = dict()
     for string in result:
         settings[string[1]] = string[2]
-    #print(settings)
     #get bots
     #change to in game
     names = dict()
-    c.execute("UPDATE players SET room = -1 WHERE room IS NULL")
     c.execute("SELECT key, name FROM players WHERE state = 'ready' AND room = -1")
     result = c.fetchall()
     shuffle(result)
-    players_not = list()
-    ##print("CURRENT PLAYERS:") 
+    players_not = list() 
     #6 random bots
     for string in result:
-        ##print(string[0]+" - "+string[1])
         players_not.append(string[0])
         names[string[0]]=string[1]
     players = []
@@ -53,8 +48,6 @@ def new_battle(room_number, map_):
         c.execute("UPDATE players SET room = ? WHERE key = ?",[room, player])
         players.append(player)
 
-    ##print("")
-    ##print("")
 
     #clear current state
     c.execute("DELETE FROM statistics WHERE room = ?",  [room] )
@@ -74,7 +67,6 @@ def new_battle(room_number, map_):
         settings["height"] = len(mainMap[0])
         settings["width"] = len(mainMap)
 
-        ##print("size: {0} x {1}".format(settings["width"], settings["height"]))
     # 2-nd map aff all matrix of the game (with health) 0-wal, some-player, 1-coin or wall
     healthMap = [[0 for i in range(int(settings["height"]))] for j in range(int(settings["width"]))]
     for i in range(len(mainMap)):
@@ -134,14 +126,10 @@ def new_battle(room_number, map_):
     c.execute("UPDATE rooms SET status=? WHERE key = ?", ["game", room])
     conn.commit()
     
-    print("NEW GAME IN ROOM: " + room)
-    print("PLAYERS: ", players)
-    print("SETTINGS: ", settings)
+    print("NEW GAME IN ROOM: " + room, str(len(players)) + "players")
     # game started
     sys.path.append(os.path.dirname(__file__) + "/bots")
     while True:
-        if ticks%50 == 0:
-            print("current tick:"+str(ticks)+" in room:" + room)
         if (ticks>int(settings['stop_ticks']) or lifeplayers<int(settings['game_stop'])):
             break
         #choices - dict with choices of all players
@@ -212,13 +200,14 @@ def new_battle(room_number, map_):
                 if x_new >= 0 and x_new < settings["width"] - 1 and y_new >= 0 and y_new < settings["height"] and mainMap[x_new][y_new] in ('.', '@') and mainMap[x_new][y_new] in (".", "@"):
                     if mainMap[x_new][y_new] == "@":
                         coins[player] += 1
-                    c.execute("DELETE FROM coins WHERE x = ? AND y = ? AND room = ?", [x_new, y_new, room])
+                        c.execute("DELETE FROM coins WHERE x = ? AND y = ? AND room = ?", [x_new, y_new, room])
                     mainMap[x_now][y_now] = "."
                     mainMap[x_new][y_new] = player
                     healthMap[x_now][y_now] = 0
                     healthMap[x_new][y_new] = health[player]
                     coords[player]["x"], coords[player]["y"] = x_new, y_new
-                    c.execute("UPDATE game SET x = ? and y = ? WHERE key = ?", [x_new, y_new, player])
+                    c.execute("UPDATE game SET x = ? WHERE key = ?", [x_new, player])
+                    c.execute("UPDATE game SET y = ? WHERE key = ?", [y_new, player])
             #player wants to fire
             elif choices[player][:5] == "fire_":
                 shots[player] += 1
@@ -276,7 +265,17 @@ def new_battle(room_number, map_):
         #db record
         conn.commit()
         #tick ends
+        time.sleep(0.5)
     #after game
+    for player in players:
+        c.execute("SELECT sum_score, games FROM players WHERE key = ?", [player])
+        result = c.fetchone()
+        c.execute("SELECT lifetime FROM statistics WHERE key = ?", [player])
+        points = coins[player]*50 + kills[player]*20+c.fetchone()[0]-crashes[player]*5
+        sum_score = result[0] + points
+        games = result[1] + 1
+        c.execute("UPDATE players SET sum_score = ? WHERE key = ?", [sum_score, player])
+        c.execute("UPDATE players SET games = ? WHERE key = ?", [games, player])
     c.execute("UPDATE rooms SET status=? WHERE key = ?", ["ready", room])
     c.execute("UPDATE rooms SET tick=? WHERE key = ?", [-1, room])
     c.execute("UPDATE settings SET value = ? WHERE param = ?", ["stop", "game_state"])

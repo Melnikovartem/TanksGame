@@ -28,6 +28,5 @@ if __name__  == "__main__":
     room1 = make_new_room("Игра табуреток", "")
     room2 = make_new_room("Истинный Пират", "")
     room1.join()
-    sleep(1)
     room2.join()
 

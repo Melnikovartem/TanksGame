@@ -42,7 +42,8 @@ def get_PlayerLobboyHandler(self):
             status = "бот отдыхает"
         else:
             c.execute("SELECT name FROM rooms WHERE key = ?", [room])
-            status = "бот в комнате "
+            room_name = c.fetchone()[0]
+            status = 'бот в комнате "' + room_name + '"'
     except Exception as e:
         pass
     
@@ -123,11 +124,7 @@ def post_RegHandler(self):
             c.execute("INSERT INTO cookies (cookie, key, style) VALUES (?,?,?)", [cookie, key, "roctbb"])
         else:
             cookie = self.get_cookie("TanksGame")
-            try:
-                c.execute("SELECT * FROM cookies WHERE cookie = ?", [cookie] )
-                c.execute("UPDATE cookies SET key = ? WHERE cookie = ?", [key, cookie])
-            except Exception as e:
-                c.execute("INSERT INTO cookies (cookie, key, style) VALUES (?,?,?)", [cookie, key, "roctbb"])
+            c.execute("UPDATE cookies SET key = ? WHERE cookie = ?", [key, cookie])
                 
         c.execute("INSERT INTO players (name, key, password) VALUES (?,?,?)", [name, key, password])
         conn.commit()
@@ -159,11 +156,7 @@ def post_LoginHandler(self):
                 c.execute("INSERT INTO cookies (cookie, key, style) VALUES (?,?,?)", [cookie, key_, "roctbb"])
             else:
                 cookie = self.get_cookie("TanksGame")
-                try:
-                    c.execute("SELECT * FROM cookies WHERE cookie = ?", [cookie] )
-                    c.execute("UPDATE cookies SET key = ? WHERE cookie = ?", [key_, cookie])
-                except Exception as e:
-                    c.execute("INSERT INTO cookies (cookie, key, style) VALUES (?,?,?)", [cookie, key_, "roctbb"])
+                c.execute("UPDATE cookies SET key = ? WHERE cookie = ?", [key_, cookie])
             conn.commit()
             
             self.redirect('/playerlobby')

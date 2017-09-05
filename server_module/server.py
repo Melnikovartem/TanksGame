@@ -44,6 +44,10 @@ class StateHandler(tornado.web.RequestHandler):
 class StatsHandler(tornado.web.RequestHandler):
     def get(self):
         web_game.get_StatsHandler(self)
+        
+class LeaderBoardHandler(tornado.web.RequestHandler):
+    def get(self):
+        web_game.get_LeaderBoardHandler(self)
 
 class Application(tornado.web.Application):
     def __init__(self):
@@ -55,6 +59,7 @@ class Application(tornado.web.Application):
                 (r"/gamelist", GameListHandler),
                 (r"/state", StateHandler), 
                 (r"/stats", StatsHandler),
+                (r"/leaderboard", LeaderBoardHandler),
                 (r'/styles/(.*)', tornado.web.StaticFileHandler, 
                 {'path': os.path.dirname(__file__)+"styles/"}),]
         settings = {}
@@ -62,7 +67,7 @@ class Application(tornado.web.Application):
 
 def main():
     http_server = tornado.httpserver.HTTPServer(Application())
-    http_server.listen(8000)
+    http_server.listen(8888)
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":

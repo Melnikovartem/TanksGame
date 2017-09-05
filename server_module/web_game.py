@@ -61,25 +61,29 @@ def get_StateHandler(self):
     result = c.fetchall()
     names=dict()
     stat = []
-    for record in result:
-        names[record[2]] = record[1]
-        c.execute("SELECT * FROM game WHERE key = ?", [record[2]])
-        some = c.fetchone()
-        stat.append(some)
-    for record in stat:
+    for record_main in result:
+        names[record_main[2]] = record_main[1]
+        c.execute("SELECT * FROM game WHERE key = ?", [record_main[2]])
+        record = c.fetchone()
         name = names[record[1]]
         x = record[2]
         y = record[3]
         life = record[4]
         name = names[record[1]]
         mainMap[x][y] = {'name': name, 'life': life, 'hit': 0}
-    for record in stat:
+    for record_main in result:
+        c.execute("SELECT * FROM game WHERE key = ?", [record_main[2]])
+        record = c.fetchone()
+        name = names[record[1]]
         x = int(record[2])
         y = int(record[3])
         c.execute("SELECT value FROM actions WHERE key = ? AND room = ? ORDER BY id", [record[1], room])
-        action = c.fetchone()[0]
+        try:
+            action = c.fetchone()[0]
+        except:
+            action = "None"
         #draw an error
-        if action[:5] == "fire_":
+        if action[:5] == "fire_": 
             direction = action[5:]
             list_x = [x]
             list_y = [y]
@@ -88,7 +92,7 @@ def get_StateHandler(self):
                 list_y = range(y - 1, -1 , -1)
                 type_arr = '&uarr;'
             elif direction == "down":
-                list_x = range(y + 1, settings["height"], 1)
+                list_y = range(y + 1, settings["height"], 1)
                 type_arr = '&darr;'
             elif direction == "left":
                 list_x = range(x - 1, -1 , -1)
@@ -130,12 +134,10 @@ def get_StatsHandler(self):
     result = c.fetchall()
     names = dict()
     stat = []
-    for record in result:
-        names[record[2]] = record[1]
-        c.execute("SELECT * FROM statistics WHERE key = ?", [record[2]])
-        some = c.fetchone()
-        stat.append(some)
-    for record in stat:
+    for record_main in result:
+        names[record_main[2]] = record_main[1]
+        c.execute("SELECT * FROM statistics WHERE key = ?", [record_main[2]])
+        record = c.fetchone()
         name = names[record[1]]
         kills = record[2]
         lifetime = record[3]
@@ -160,9 +162,10 @@ def get_StatsHandler(self):
         if len(l)>0 :
             life = l[0][0]
         gamestate.append({"name": name,"hp":life, "kills": kills, "lifetime": lifetime, "score": points, "shots": shots, "steps": steps, "quality": quality, "quality_class": quality_class, "lastCrash": lastCrash, "coins": coins})
-    
+    c.execute("SELECT name FROM rooms WHERE key = ?", [room])
+    name_room = c.fetchone()[0]
     conn.close()
-    self.render(config.way + "server_module/html/stats.html", gamestate = sorted(gamestate, key=lambda k: -k['score']))
+    self.render(config.way + "server_module/html/stats.html", gamestate = sorted(gamestate, key=lambda k: -k['score']), name_room = name_room)
             
 def get_GameListHandler(self):
     conn = sqlite3.connect(config.way + 'tanks.sqlite')
@@ -170,6 +173,7 @@ def get_GameListHandler(self):
     c.execute("SELECT * FROM rooms ORDER BY id" )
     results = c.fetchall()
     all_ = []
+    # i - room
     for i in results:
         players = []
         try:
@@ -184,3 +188,22 @@ def get_GameListHandler(self):
             })
     conn.close()
     self.render(config.way + "server_module/html/gamelist.html", rooms = all_)
+    
+def get_LeaderBoardHandler(self):
+    conn = sqlite3.connect(config.way + 'tanks.sqlite')
+    c = conn.cursor()
+    c.execute("SELECT * FROM players ORDER BY id" )
+    results = c.fetchall()
+    all_ = []
+    scores = []
+    # i - player
+    for i in results:
+        if i[8] != 0:
+            score = round(int(i[7])/int(i[8]), 2)
+        else:
+            score = 0
+        scores.append([score, i[1]])
+    scores.sort()
+    for j in scores[::-1]:    
+        all_.append({"player": j[1], "score":j[0]})
+    self.render(config.way + "server_module/html/leaderboard.html", board = all_)

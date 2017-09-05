@@ -12,23 +12,20 @@
     <script src="styles/bootstrap.min.js"></script>
     <script>
     var timerId = setTimeout(function() {
-        location.href='/gamelist';
+        location.href='/leaderboard';
     }, 5000);
     </script>
 </head>
 <body>
     <h4><a href='/'>Вернуться на главную</a></h4>
-    <h1>Комнаты:</h1>
+    <h1>Таблица лидеров:</h1>
     <table cellspacing="0" class="table">
-        <tr><th>#</th><th>Ход</th><th>Название комнаты</th><th>Статистика комнаты</th><th>Сейчас в комнате</th><th>Статус</th><th>Карта</th>
-    {% for i in range(len(rooms)) %}
+        <tr><th>#</th><th>Имя</th><th>Счет/игры</th>
+    {% for i in range(len(board)) %}
         <tr>
-            <td>{{i}}</td><td>{{rooms[i]["tick"]}}</td>
-            <td><a href = {{rooms[i]["game"]}}>{{rooms[i]["name"]}}</td>
-            <td><a href = {{rooms[i]["stats"]}}>Статистика</td>
-            <td>{{rooms[i]["players"]}}</td>
-            <td>{{rooms[i]["status"]}}</td>
-            <td>{{rooms[i]["map"]}}</td>
+            <td>{{i}}</td>
+            <td>{{board[i]["player"]}}</td>
+            <td>{{board[i]["score"]}}</td>
         </tr>
     {% end %}
     </table>
