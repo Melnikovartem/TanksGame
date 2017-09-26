@@ -283,6 +283,44 @@ def new_battle(room_number, map_):
     conn.commit()
     return settings
 
+class game 
+
+class game_object:
+    def __init__(x, y):
+        x = 
+        y = 
+    def effect(self, player):
+        pass
+    
+class Player:
+    def __init__(self, x,y, health, health):
+        self.x = x
+        self.y = x
+        self.health = health
+    def minus_life(self, ):
+        
+    def move(self, ):
+        steps[player] += 1
+        y_new, x_new = self.x
+        direction = choices[player][3:]
+        if direction == "up":
+            y_new -= 1
+        elif direction == "down":
+            y_new += 1
+        elif direction == "left":
+            x_new -= 1
+        elif direction == "right":
+            x_new += 1
+        # weather the movement happens
+    
+    def atack(self, ):
+            
+    def set_code(self, ):
+        
+    
+    
+
+
 
 
 
