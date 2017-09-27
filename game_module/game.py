@@ -372,6 +372,8 @@ class game:
         self.conn.close()
             
     def tick(self):
+        for player in self.players:
+            
         self.conn.commit()
         
     def move_player(self, player, x, y):
@@ -384,6 +386,8 @@ class game:
 #! evrything is object -> remember it
 class Game_object:
     self.move = True
+    # 0-pass; -1 - stop; 1 - hurt
+    self.fire = 0
     def __init__(x, y):
         self.x = x
         self.y = y
@@ -399,16 +403,20 @@ class Land(Game_object):
     
 class Wall(Game_object):
     self.move = False
+    self.fire = -1
     def get_symbol(self):
         return "W"
     
+
 class Player(Game_object):
     self.move = False
-    def __init__(self, x,y, health):
+    self.fire = 1
+    def __init__(self, x,y, health, player_id):
         self.x = x
         self.y = x
         self.health = health
-        self.player_id = 
+        #work with db
+        self.player_id = player_id
         
     def get_symbol(self):
         return "P"
@@ -417,7 +425,7 @@ class Player(Game_object):
         pass
     
     def make_choice(self, field):
-        choice = ""
+        self.choice = ""
         
         try:
             output_file = open(config.way + "game_module/bots/" + player + ".py", 'wb')
@@ -425,30 +433,30 @@ class Player(Game_object):
             output_file.close()
             module = imp.import_module("bots." + self.player_id)
             makeChoice = getattr(module, "make_choice")
-            choice = makeChoice(int(self.x), int(self.y), field) # тут выбор
+            self.choice = makeChoice(int(self.x), int(self.y), field) # тут выбор
         except Exception as e:
-            choice = "crash"
-        return choice
+            self.choice = "crash"
         
     def work(self, game):
-        choice = self.make_choice(game.field)
+        self.make_choice(game.field)
         #Analize what each user does
             
             #bot didn't crash but the command was bad
             #should change it later
-            if choices[player] not in :
-                errors[player] += 1
+            if self.choice not in (comands):
+               self.choice = "error"
             
             history[player].append(choices[player])
             c.execute("INSERT INTO actions (key, value, room) VALUES (?, ?, ?)", [player, choices[player], room])
             #not error
-            if choices[player] in ("error", "crash"):
-                pass
             #We can say that player wants to go somewere        
-            elif choices[player][:3] == "go_":
-                
+            if choices[player][:3] == "go_":
+                self.movement(game)
             #player wants to fire
             elif choices[player][:5] == "fire_":
+                self.atack(game)
+            else:
+                self.change_health(-1)
             #all comands were checked
 
                 
@@ -458,10 +466,9 @@ class Player(Game_object):
         self.health += value
     
         
-    def move(self, choice, game):
-        steps[player] += 1
+    def movement(self, game):
         x_new, y_new = self.x, self.y
-        direction = choice[3:]
+        direction = self.choice[3:]
         if direction == "up":
             y_new -= 1
         elif direction == "down":
@@ -470,16 +477,16 @@ class Player(Game_object):
             x_new -= 1
         elif direction == "right":
             x_new += 1
+        # weather the movement happens
         if game.field[x_new][y_new].move:
             game.move_player(self, x_new, y_new)
             
         
-        # weather the movement happens
     
-    def atack(self, choice, game):
-        direction = choice[5:]
-        list_x = [x_now]
-        list_y = [y_now]
+    def atack(self, game):
+        direction = self.choice[5:]
+        list_x = self.x
+        list_y = self.y
         if direction == "up":
             list_y = range(y_now - 1, -1 , -1)
         elif direction == "down":
@@ -489,20 +496,13 @@ class Player(Game_object):
         elif direction == "right":                   
             list_x = range(x_now + 1, settings["width"], 1)
         for x_change, y_change in product(list_x, list_y):
-            if mainMap[x_change][y_change] == '#':
+            curent_pos = game.field[x_change][y_change]
+            if curent_pos.fire == 1:
+                curent_pos.change_health(-1)
                 break
-            elif mainMap[x_change][y_change] not in ('.', '@') and (x_change != x_now or y_change != y_now):
-                hit_player = mainMap[x_change][y_change]
-                health[hit_player] -= 1
-                healthMap[x_change][y_change] -= 1
-                kills[player] += 1
-                c.execute("UPDATE game SET life = ? WHERE key = ?", [health[hit_player], hit_player])
-                c.execute("UPDATE statistics SET kills = ?  WHERE key = ?", [kills[player], player])
+            elif curent_pos.fire == -1:
                 break
-     
-     
-    def set_code(self, ):
-        pass
+                
     
     
 
