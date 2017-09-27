@@ -334,65 +334,78 @@ def new_battle(room_number, map_):
 
 
 
-class game:
-    def __init__(self):
+class MainGame:
+    def __init__(self, room_id):
         # connection with db
-        self.conn = sqlite3.connect(way + 'data_game.sqlite')
+        self.conn = sqlite3.connect(way + 'game_module/data_game.sqlite')
         self.cursor = self.conn.cursor()
-        self.room = str(room_number)
+        self.room_id = str(room_id)
         #way + 'game_module/bots'
         #get settings
-        settings = self.cursor.execute("SELECT * FROM settings WHERE id = 1").fetchone()
+        self.cursor.execute("SELECT * FROM settings WHERE id = 1")
+        settings = self.cursor.fetchone()
         self.ticks = settings[3]
         health = settings[2]
         #generate map
-        generate_field(get_field_from_file(settings[1]))
+        self.generate_field(settings[1])
 
         
     def generate_field(self, field_id):
-        self.field = [[Land() for i in range(self.width)]for i in range(self.height)]
-        field_text = get_field_from_file(field_id)
-        for i in product(range(self.width), range(self.height)):
-            if field_text[i[0]][i[1]] == 
+        field_text = self.get_field_from_file(field_id)
+        self.field = [[Land(i, j) for i in range(self.width)]for j in range(self.height)]
+        print( )
+        for i in product(range(self.height), range(self.width)):
+            if field_text[i[0]][i[1]] == "#":
+                self.field[i[0]][i[1]] = Wall(i[0], i[1])
     
     def get_field_from_file(self, field_id):
-        with open(way + field) as map_file:
+        with open(way + field_id) as map_file:
             map_data = map_file.read()
             result = map_data.split('\n')
             for i in range(len(result)):
                 result[i] = result[i].split(' ')
-            self.height = len(result[0])
-            self.width = len(result)
+            self.height = len(result)
+            self.width = len(result[0])
         return result
         
+    def save history(self):
+        history_file = open(way+"/history/"+self.room_id, 'w')
+        history_file.write(get_field(self))
+        history_file.close()
+        
     def get_field(self):
-        pass
+        result = str(self.tick)
+        for line in self.field:
+            for element in line:
+                result+=""
+            result+="\n"
         
     def close(self):
         self.conn.close()
             
     def tick(self):
         for player in self.players:
-            
+            pass 
         self.conn.commit()
         
     def move_player(self, player, x, y):
-        self.field[x_new][y_new].effect_player(player)
+        self.field[x][y].effect_player(player)
         # Player can move just over Land
-        self.field[x_new][y_new], self.field[ player.x][player.y] = self.field[ player.x][player.y], Land()
+        self.field[x][y], self.field[ player.x][player.y] = self.field[ player.x][player.y], Land()
         player.x, player.y = x, y 
         
     
 #! evrything is object -> remember it
 class Game_object:
-    self.move = True
+    move = True
     # 0-pass; -1 - stop; 1 - hurt
-    self.fire = 0
-    def __init__(x, y):
+    fire = 0
+    def __init__(self, x, y):
         self.x = x
         self.y = y
     def effect_player(self, player):
         pass
+    # can be __str__(), but i like this way
     def get_symbol():
         return "N"
     
@@ -402,15 +415,15 @@ class Land(Game_object):
         return "L"
     
 class Wall(Game_object):
-    self.move = False
-    self.fire = -1
+    move = False
+    fire = -1
     def get_symbol(self):
         return "W"
     
 
 class Player(Game_object):
-    self.move = False
-    self.fire = 1
+    move = False
+    fire = 1
     def __init__(self, x,y, health, player_id):
         self.x = x
         self.y = x
@@ -441,23 +454,19 @@ class Player(Game_object):
         self.make_choice(game.field)
         #Analize what each user does
             
-            #bot didn't crash but the command was bad
-            #should change it later
-            if self.choice not in (comands):
-               self.choice = "error"
-            
-            history[player].append(choices[player])
-            c.execute("INSERT INTO actions (key, value, room) VALUES (?, ?, ?)", [player, choices[player], room])
-            #not error
-            #We can say that player wants to go somewere        
-            if choices[player][:3] == "go_":
-                self.movement(game)
-            #player wants to fire
-            elif choices[player][:5] == "fire_":
-                self.atack(game)
-            else:
-                self.change_health(-1)
-            #all comands were checked
+        #bot didn't crash but the command was bad
+        #should change it later
+        #not error
+        #We can say that player wants to go somewere        
+        if self.choice[:3] == "go_":
+            self.movement(game)
+        #player wants to fire
+        elif self.choice[:5] == "fire_":
+            self.atack(game)
+        else:
+            self.change_health(-1)
+            self.choice = "error"
+        #all comands were checked
 
                 
         
@@ -539,6 +548,9 @@ class Player(Game_object):
 
 
 if __name__ == "__main__":
+    hi = MainGame(1)
+    print(hi.field)
+'''
     print("clear-clear all players hist rooms \nelse-start a game in test(0) room")
     x = input()
     if x == "clear":
@@ -566,7 +578,7 @@ if __name__ == "__main__":
             time.sleep(5)
 
 
-
+'''
 
 
 
