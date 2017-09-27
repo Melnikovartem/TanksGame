@@ -349,13 +349,13 @@ class game:
         generate_field(get_field_from_file(settings[1]))
 
         
-    def generate_field(field_id):
+    def generate_field(self, field_id):
         self.field = [[Land() for i in range(self.width)]for i in range(self.height)]
         field_text = get_field_from_file(field_id)
         for i in product(range(self.width), range(self.height)):
             if field_text[i[0]][i[1]] == 
     
-    def get_field_from_file(field_id):
+    def get_field_from_file(self, field_id):
         with open(way + field) as map_file:
             map_data = map_file.read()
             result = map_data.split('\n')
@@ -365,7 +365,7 @@ class game:
             self.width = len(result)
         return result
         
-    def get_field():
+    def get_field(self):
         pass
         
     def close(self):
@@ -373,15 +373,22 @@ class game:
             
     def tick(self):
         self.conn.commit()
+        
+    def move_player(self, player, x, y):
+        self.field[x_new][y_new].effect_player(player)
+        # Player can move just over Land
+        self.field[x_new][y_new], self.field[ player.x][player.y] = self.field[ player.x][player.y], Land()
+        player.x, player.y = x, y 
+        
     
 #! evrything is object -> remember it
 class Game_object:
+    self.move = True
     def __init__(x, y):
         self.x = x
         self.y = y
     def effect_player(self, player):
-        # 0 - can move; -1 -no
-        return 0
+        pass
     def get_symbol():
         return "N"
     
@@ -391,49 +398,46 @@ class Land(Game_object):
         return "L"
     
 class Wall(Game_object):
+    self.move = False
     def get_symbol(self):
         return "W"
-    def effect_player(self):
-        return -1
     
 class Player(Game_object):
+    self.move = False
     def __init__(self, x,y, health):
         self.x = x
         self.y = x
         self.health = health
+        self.player_id = 
+        
     def get_symbol(self):
         return "P"
         
     def effect_player(self):
-        return -1
+        pass
     
-    def make_code(self):
-        choices[player] = ""
+    def make_choice(self, field):
+        choice = ""
         
         try:
-            c.execute("SELECT code FROM players WHERE key = ?", [player])
-            code = c.fetchone()
             output_file = open(config.way + "game_module/bots/" + player + ".py", 'wb')
-            output_file.write(code[0])
+            output_file.write(self.code)
             output_file.close()
-            module = imp.import_module("bots." + player)
+            module = imp.import_module("bots." + self.player_id)
             makeChoice = getattr(module, "make_choice")
-            choices[player] = makeChoice(int(coords[player]["x"]), int(coords[player]["y"]), historyMap) # тут выбор
+            choice = makeChoice(int(self.x), int(self.y), field) # тут выбор
         except Exception as e:
-            choices[player] = "crash"
-            crashes[player]+=1
-            c.execute("UPDATE statistics SET crashes = ? WHERE key = ?",[crashes[player], player])
-            c.execute("UPDATE statistics SET lastCrash = ? WHERE key = ?", [str(e), player])
+            choice = "crash"
+        return choice
         
-    def work(self):
-        choice = self.make_choice()
+    def work(self, game):
+        choice = self.make_choice(game.field)
         #Analize what each user does
             
             #bot didn't crash but the command was bad
             #should change it later
-            if choices[player] not in ("go_up","fire_up","go_down","fire_down","go_right","fire_right","go_left","fire_left","crash"):
+            if choices[player] not in :
                 errors[player] += 1
-                choices[player] = "error"
             
             history[player].append(choices[player])
             c.execute("INSERT INTO actions (key, value, room) VALUES (?, ?, ?)", [player, choices[player], room])
@@ -445,55 +449,18 @@ class Player(Game_object):
                 
             #player wants to fire
             elif choices[player][:5] == "fire_":
-                shots[player] += 1
-                direction = choices[player][5:]
-                list_x = [x_now]
-                list_y = [y_now]
-                if direction == "up":
-                    list_y = range(y_now - 1, -1 , -1)
-                elif direction == "down":
-                    list_x = range(x_now + 1, settings["height"], 1)
-                elif direction == "left":
-                    list_x = range(x_now - 1, -1 , -1)
-                elif direction == "right":                   
-                    list_x = range(x_now + 1, settings["width"], 1)
-                for x_change, y_change in product(list_x, list_y):
-                    if mainMap[x_change][y_change] == '#':
-                        break
-                    elif mainMap[x_change][y_change] not in ('.', '@') and (x_change != x_now or y_change != y_now):
-                        hit_player = mainMap[x_change][y_change]
-                        health[hit_player] -= 1
-                        healthMap[x_change][y_change] -= 1
-                        kills[player] += 1
-                        c.execute("UPDATE game SET life = ? WHERE key = ?", [health[hit_player], hit_player])
-                        c.execute("UPDATE statistics SET kills = ?  WHERE key = ?", [kills[player], player])
-                        break
             #all comands were checked
 
-            if int(health[player])>0:
-                c.execute(
-                    "UPDATE statistics SET lifetime = " + str(ticks) + " WHERE key = ?",
-                    [player])
-                c.execute(
-                    "UPDATE statistics SET shots = " + str(shots[player]) + " WHERE key = ?",
-                    [player])
-                c.execute(
-                    "UPDATE statistics SET coins = " + str(coins[player]) + " WHERE key = ?",
-                    [player])
-                c.execute(
-                    "UPDATE statistics SET steps = " + str(steps[player]) + " WHERE key = ?",
-                    [player])
-                c.execute(
-                    "UPDATE statistics SET errors = " + str(errors[player]) + " WHERE key = ?",
-                    [player])
+                
         
         
-    def minus_life(self, ):
-        pass
+    def change_health(self, value):
+        self.health += value
+    
         
-    def move(self, choice):
+    def move(self, choice, game):
         steps[player] += 1
-        y_new, x_new = self.x
+        x_new, y_new = self.x, self.y
         direction = choice[3:]
         if direction == "up":
             y_new -= 1
@@ -503,11 +470,37 @@ class Player(Game_object):
             x_new -= 1
         elif direction == "right":
             x_new += 1
+        if game.field[x_new][y_new].move:
+            game.move_player(self, x_new, y_new)
+            
         
         # weather the movement happens
     
-    def atack(self, ):
-         pass   
+    def atack(self, choice, game):
+        direction = choice[5:]
+        list_x = [x_now]
+        list_y = [y_now]
+        if direction == "up":
+            list_y = range(y_now - 1, -1 , -1)
+        elif direction == "down":
+            list_x = range(x_now + 1, settings["height"], 1)
+        elif direction == "left":
+            list_x = range(x_now - 1, -1 , -1)
+        elif direction == "right":                   
+            list_x = range(x_now + 1, settings["width"], 1)
+        for x_change, y_change in product(list_x, list_y):
+            if mainMap[x_change][y_change] == '#':
+                break
+            elif mainMap[x_change][y_change] not in ('.', '@') and (x_change != x_now or y_change != y_now):
+                hit_player = mainMap[x_change][y_change]
+                health[hit_player] -= 1
+                healthMap[x_change][y_change] -= 1
+                kills[player] += 1
+                c.execute("UPDATE game SET life = ? WHERE key = ?", [health[hit_player], hit_player])
+                c.execute("UPDATE statistics SET kills = ?  WHERE key = ?", [kills[player], player])
+                break
+     
+     
     def set_code(self, ):
         pass
     
