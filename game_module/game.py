@@ -382,8 +382,6 @@ class MainGame:
             result+="\n"
         return result
         
-    def close(self):
-        self.conn.close()
             
     def tick(self):
         for player in self.players:
@@ -396,6 +394,9 @@ class MainGame:
         self.field[x][y], self.field[ player.x][player.y] = self.field[ player.x][player.y], Land()
         player.x, player.y = x, y 
         
+    
+    def close(self):
+        self.conn.close()
     
 #! evrything is object -> remember it
 class Game_object:
@@ -469,7 +470,8 @@ class Player(Game_object):
             self.change_health(-1)
             self.choice = "error"
         #all comands were checked
-
+    def update_code(self):
+        pass
                 
         
         
