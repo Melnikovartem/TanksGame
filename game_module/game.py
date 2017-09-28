@@ -368,17 +368,19 @@ class MainGame:
             self.width = len(result[0])
         return result
         
-    def save history(self):
+    def save_history(self):
         history_file = open(way+"/history/"+self.room_id, 'w')
-        history_file.write(get_field(self))
+        history_file.write(get_text_field(self))
         history_file.close()
         
-    def get_field(self):
+    # maybe i could do it by 2 list comp. but it was too big 
+    def get_text_field(self):
         result = str(self.tick)
         for line in self.field:
             for element in line:
-                result+=""
+                result += element.get_symbol() + "|"
             result+="\n"
+        return result
         
     def close(self):
         self.conn.close()
@@ -407,18 +409,18 @@ class Game_object:
         pass
     # can be __str__(), but i like this way
     def get_symbol():
-        return "N"
+        return "_N_"
     
 #way change parametrs
 class Land(Game_object):
     def get_symbol(self):
-        return "L"
+        return "_L_"
     
 class Wall(Game_object):
     move = False
     fire = -1
     def get_symbol(self):
-        return "W"
+        return "_W_"
     
 
 class Player(Game_object):
@@ -429,10 +431,10 @@ class Player(Game_object):
         self.y = x
         self.health = health
         #work with db
-        self.player_id = player_id
+        self.player_game_id = player_game_id
         
     def get_symbol(self):
-        return "P"
+        return "_P_"
         
     def effect_player(self):
         pass
@@ -549,7 +551,7 @@ class Player(Game_object):
 
 if __name__ == "__main__":
     hi = MainGame(1)
-    print(hi.field)
+    print(hi.get_text_field())
 '''
     print("clear-clear all players hist rooms \nelse-start a game in test(0) room")
     x = input()
