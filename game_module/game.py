@@ -335,6 +335,9 @@ def new_battle(room_number, map_):
 
 
 class MainGame:
+    list_parametrs = ["moves", "shots", "coins", "hits"]
+    list_commands = ["go_up","fire_up","go_down","fire_down","go_right",
+                     "fire_right","go_left","fire_left","crash"]
     def __init__(self, room_id):
         # connection with db
         self.conn = sqlite3.connect(way + 'game_module/data_game.sqlite')
@@ -394,15 +397,20 @@ class MainGame:
         self.field[x][y], self.field[ player.x][player.y] = self.field[ player.x][player.y], Land()
         player.x, player.y = x, y 
     
-    def db_update_parametrs(self, player):
-        self.cursor("UPDATE player_status SET last_action = %s WHERE InGame_id = %s" 
+    
+    def db_update_parameters(self, player):
+        self.cursor.execute("UPDATE player_status SET last_action = %s WHERE InGame_id = %s" 
                     % (player.choice, player.player_game_id))
-        self.cursor("UPDATE player_status SET health = %s WHERE InGame_id = %s" 
+        self.cursor.execute("UPDATE player_status SET health = %s WHERE InGame_id = %s" 
                     % (player.health, player.player_game_id))
-        self.conn.commit()
+        for param in self.list_parameters:
+            self.cursor.execute("UPDATE player_status SET %s = %s WHERE InGame_id = %s" 
+                                % (param, player.parameters[param], player.player_game_id))
         
-    def close(self):
         
+        
+        
+    def close(self): 
         self.conn.close()
     
 #! evrything is object -> remember it
@@ -431,9 +439,8 @@ class Wall(Game_object):
         return "_W_"
     
 
-
 class Player(Game_object):
-    parametrs = {"moves":0, "shots":0, "coins":0, "hits":0}
+    parameters = {"moves":0, "shots":0, "coins":0, "hits":0}
     move = False
     fire = 1
     def __init__(self, x,y, health, player_id):
@@ -446,7 +453,7 @@ class Player(Game_object):
     def get_symbol(self):
         return "_P_"
         
-    def effect_player(self):
+    def effect_player(self, player):
         pass
     
     def make_choice(self, field):
@@ -469,25 +476,20 @@ class Player(Game_object):
         #bot didn't crash but the command was bad
         #should change it later
         #not error
-        #We can say that player wants to go somewere        
+        #We can say that player wants to go somewere  
+        if self.choice not in game.list_commands:
+            self.change_health(-1)
+            self.choice = "error"
         if self.choice[:3] == "go_":
             self.movement(game)
         #player wants to fire
         elif self.choice[:5] == "fire_":
             self.atack(game)
-        else:
-            self.change_health(-1)
-            self.choice = "error"
         
         # update all parametrs
-        game.db_update_parametrs(self)
+        game.db_update_parameters(self)
         
         #all comands were checked
-        
-        
-        
-    def update_code(self):
-        pass
                 
         
         
@@ -508,11 +510,13 @@ class Player(Game_object):
             x_new += 1
         # weather the movement happens
         if game.field[x_new][y_new].move:
+            self.parameters["step"] += 1
             game.move_player(self, x_new, y_new)
             
         
     
     def atack(self, game):
+        self.parameters["shots"] += 1
         direction = self.choice[5:]
         list_x = self.x
         list_y = self.y
@@ -527,6 +531,7 @@ class Player(Game_object):
         for x_change, y_change in product(list_x, list_y):
             curent_pos = game.field[x_change][y_change]
             if curent_pos.fire == 1:
+                self.parameters["hits"] += 1
                 curent_pos.change_health(-1)
                 break
             elif curent_pos.fire == -1:
