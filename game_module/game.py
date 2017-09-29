@@ -393,9 +393,16 @@ class MainGame:
         # Player can move just over Land
         self.field[x][y], self.field[ player.x][player.y] = self.field[ player.x][player.y], Land()
         player.x, player.y = x, y 
-        
     
+    def db_update_parametrs(self, player):
+        self.cursor("UPDATE player_status SET last_action = %s WHERE InGame_id = %s" 
+                    % (player.choice, player.player_game_id))
+        self.cursor("UPDATE player_status SET health = %s WHERE InGame_id = %s" 
+                    % (player.health, player.player_game_id))
+        self.conn.commit()
+        
     def close(self):
+        
         self.conn.close()
     
 #! evrything is object -> remember it
@@ -424,7 +431,9 @@ class Wall(Game_object):
         return "_W_"
     
 
+
 class Player(Game_object):
+    parametrs = {"moves":0, "shots":0, "coins":0, "hits":0}
     move = False
     fire = 1
     def __init__(self, x,y, health, player_id):
@@ -469,7 +478,14 @@ class Player(Game_object):
         else:
             self.change_health(-1)
             self.choice = "error"
+        
+        # update all parametrs
+        game.db_update_parametrs(self)
+        
         #all comands were checked
+        
+        
+        
     def update_code(self):
         pass
                 
