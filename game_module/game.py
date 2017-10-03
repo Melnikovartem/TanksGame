@@ -1,17 +1,20 @@
-import sqlite3
+#old
 import random
 import time
-import sys
 import os
+#new
+import sqlite3
+import sys
 import importlib as imp
 from config import way
 from random import shuffle, randint
 from itertools import product
-
+from time import sleep
 ## Before was a great system of print information by the game i will hide it by ##
 
 def new_battle(room_number, map_):
     room = str(room_number)
+    
     #работа с m файлами
     folder = config.way + 'game_module/bots'
     for the_file in os.listdir(folder):
@@ -139,6 +142,7 @@ def new_battle(room_number, map_):
     
     # game started
     sys.path.append(os.path.dirname(__file__) + "/bots")
+    
     while True:
         if (ticks>int(settings['stop_ticks']) or lifeplayers<int(settings['game_stop'])):
             break
@@ -338,21 +342,25 @@ class MainGame:
     list_parametrs = ["moves", "shots", "coins", "hits", "crash", "error"]
     list_commands = ["go_up","fire_up","go_down","fire_down","go_right",
                      "fire_right","go_left","fire_left","crash"]
+    current_tick = 0 
     def __init__(self, room_id):
+        self.room_id = str(room_id)
+        self.new()
+        
+    def new(self):
         # connection with db
         self.conn = sqlite3.connect(way + 'game_module/data_game.sqlite')
         self.cursor = self.conn.cursor()
-        self.room_id = str(room_id)
         #way + 'game_module/bots'
         #get settings
         self.cursor.execute("SELECT * FROM settings WHERE id = 1")
         settings = self.cursor.fetchone()
-        self.ticks = settings[3]
+        self.max_ticks = settings[3]
         #generate map
         self.generate_field(settings[1])
         self.generate_players(settings[2])
         self.generate_coins(20)
-
+        self.conn.commit()
         
     def generate_field(self, field_id):
         field_text = self.get_field_from_file(field_id)
@@ -374,7 +382,7 @@ class MainGame:
     def generate_players(self, health):
         self.players = []
         #get players
-        result = self.cursor.execute("SELECT id FROM players WHERE room = -1").fetchall()
+        result = self.cursor.execute("SELECT id FROM players WHERE room_id = -1").fetchall()
         shuffle(result)
         game_ids_list = ["0" + str(i) for i in range(10)]
         #6 random bots
@@ -385,10 +393,14 @@ class MainGame:
                 x = randint(0, self.width - 1)
                 y = randint(0, self.height - 1)
             player = Player(x, y, health, game_ids_list[0])
-            game_ids_list.pop(0)
             self.field[y][x] = player
             self.players.append(player)
-#!!!! add db update 
+            self.cursor.execute(
+                "INSERT INTO player_status (id, InGame_id, last_action, health) VALUES (%s, %s, %s, %s)" %
+                    (player_settings[0], player.game_id, "start", health))
+            self.db_update_code(player)
+            game_ids_list.pop(0)
+            
     def generate_coins(self, numer):
         for iter_coin in range(numer):
             x = randint(0, self.width - 1)
@@ -397,14 +409,31 @@ class MainGame:
                 x = randint(0, self.width - 1)
                 y = randint(0, self.height - 1)
             self.field[y][x] = Coin(x, y)
-            
+   
+    
+    def play(self):
+        sys.path.append(os.path.dirname(__file__) + "/bots")
+        while True:
+            while self.curent_tick < self.max_ticks and len(players) > 1:
+                self.tick
+            self.close()
+            self.new()
+        
+    def tick(self):
+        self.current_tick += 1
+        for player in self.players:
+            player.work()
+        self.save_history()
+        self.db_update_game_status()
+        self.conn.commit()
+        sleep(0.5)
         
     def save_history(self):
         history_file = open(way+"/history/"+self.room_id, 'w')
-        history_file.write(get_text_field(self))
+        history_file.write(self.get_text_field())
         history_file.close()
         
-    # maybe i could do it by 2 list comp. but it was too big 
+# maybe i could do it by 2 list comp. but it was too big 
     def get_text_field(self):
         result = ""
         for line in self.field:
@@ -412,33 +441,41 @@ class MainGame:
                 result += element.get_symbol() + "|"
             result+="\n"
         return result
-        
-            
-    def tick(self):
-        for player in self.players:
-            pass 
-        self.conn.commit()
-        
-    def move_player(self, player, x, y):
-        self.field[y][x].effect_player(player)
-        # Player can move just over Land
-        self.field[y][x], self.field[ player.x][player.y] = self.field[ player.x][player.y], Land()
-        player.x, player.y = x, y 
-    
     
     def db_update_parameters(self, player):
         self.cursor.execute("UPDATE player_status SET last_action = %s WHERE InGame_id = %s" 
-                    % (player.choice, player.player_game_id))
+                    % (player.choice, player.game_id))
         self.cursor.execute("UPDATE player_status SET health = %s WHERE InGame_id = %s" 
-                    % (player.health, player.player_game_id))
+                    % (player.health, player.game_id))
         for param in self.list_parameters:
             self.cursor.execute("UPDATE player_status SET %s = %s WHERE InGame_id = %s" 
-                                % (param, player.parameters[param], player.player_game_id))
+                        % (param, player.parameters[param], player.game_id))
         
+    def db_update_game_status(self):
+        self.cursor.execute("UPDATE rooms SET tick = %s WHERE id = %s" 
+                            % (self.current_tick, self.room_id))
+            
+    def db_update_code(self, player):
+        player.code = self.cursor.execute("SELECT code FROM players WHERE id = %s" 
+                    % self.cursor.execute("SELECT id FROM player_status WHERE InGame_id = %s" 
+                                    % player.game_id).fetchone()[0])
         
+    
+    def move_player(self, player, x, y):
+        self.field[y][x].effect_player(player)
+        # Player can move just over Land
+        self.field[y][x], self.field[player.x][player.y] = self.field[ player.x][player.y], Land()
+        player.x, player.y = x, y 
         
         
     def close(self): 
+        self.cursor.execute("UPDATE players SET room = -1 WHERE room = " + self.room_id)
+        self.cursor.execute("UPDATE rooms SET tick = -1 WHERE key = %s" % self.room_id)
+        # bad way CHANGE P.S. i don't know how
+        for player_id in self.cursor.execute("SELECT id FROM players WHERE room_id = " 
+            + self.room_id).fetchall():
+            self.cursor.execute("DELETE FROM player_status WHERE id = " + player_id[0])
+        self.conn.commit()
         self.conn.close()
     
 #! evrything is object -> remember it
@@ -478,15 +515,15 @@ class Player(Game_object):
     parameters = {"moves":0, "shots":0, "coins":0, "hits":0, "crash":0, "error":0}
     move = False
     fire = 1
-    def __init__(self, x, y, health, player_game_id):
+    def __init__(self, x, y, health, game_id):
         self.x = x
         self.y = y
         self.health = health
         #work with db
-        self.player_game_id = player_game_id
+        self.game_id = game_id
         
     def get_symbol(self):
-        return "P" + self.player_game_id
+        return "P" + self.game_id
         
     def effect_player(self, player):
         # Maybe hit???
@@ -494,7 +531,6 @@ class Player(Game_object):
     
     def make_choice(self, field):
         self.choice = ""
-        
         # need to make_getting code from db
         try:
             output_file = open(config.way + "game_module/bots/" + player + ".py", 'wb')
@@ -508,18 +544,18 @@ class Player(Game_object):
             self.parameters["crash"] += 1
         
     def work(self, game):
+        if game.curent_tick % 20 == 0:
+            game.update_code(self)
         self.make_choice(game.field)
         #Analize what each user does
             
-        #bot didn't crash but the command was bad
-        #should change it later
-        #not error
-        #We can say that player wants to go somewere  
+         
         if self.choice not in game.list_commands:
             self.change_health(-1)
             self.choice = "error"
             self.parameters["error"] += 1
-        if self.choice[:3] == "go_":
+        #We can say that player wants to go somewere 
+        elif self.choice[:3] == "go_":
             self.movement(game)
         #player wants to fire
         elif self.choice[:5] == "fire_":
@@ -614,7 +650,9 @@ class Player(Game_object):
 if __name__ == "__main__":
     hi = MainGame(1)
     print(hi.get_text_field())
+    hi.tick()
     print("",hi.height, len(hi.field),"\n", hi.width, len(hi.field[0]))
+    print(hi.players[0].code)
     
     
     
