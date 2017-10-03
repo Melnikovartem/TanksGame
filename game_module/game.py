@@ -416,7 +416,8 @@ class MainGame:
         sys.path.append(os.path.dirname(__file__) + "/bots")
         while True:
             while self.current_tick < self.max_ticks and len(players) > 1:
-                self.tick
+                self.tick()
+                sleep(0.5)
             self.close()
             self.new()
         
@@ -427,7 +428,6 @@ class MainGame:
         self.save_history()
         self.db_update_game_status()
         self.conn.commit()
-        sleep(0.5)
         
     def save_history(self):
         history_file = open(way+"/history/"+self.room_id, 'w')
@@ -444,7 +444,7 @@ class MainGame:
         return result
     
     def db_update_parameters(self, player):
-        self.cursor.execute("UPDATE player_status SET last_action = %s WHERE InGame_id = %s" 
+        self.cursor.execute("UPDATE player_status SET last_action = '%s' WHERE InGame_id = %s" 
                     % (player.choice, player.game_id))
         self.cursor.execute("UPDATE player_status SET health = %s WHERE InGame_id = %s" 
                     % (player.health, player.game_id))
@@ -465,7 +465,7 @@ class MainGame:
     def move_player(self, player, x, y):
         self.field[y][x].effect_player(player)
         # Player can move just over Land
-        self.field[y][x], self.field[player.x][player.y] = self.field[ player.x][player.y], Land()
+        self.field[y][x], self.field[player.y][player.x] = player, Land(player.x, player.y)
         player.x, player.y = x, y 
         
         
@@ -532,12 +532,14 @@ class Player(Game_object):
     
     def make_choice(self, field):
         self.choice = ""
+        # random name) need to change it(
+        name = str(randint(0, 10000000))
+        output_file = open(way + "game_module/bots/" + name + ".py", 'wb')
+        output_file.write(bytes(self.code, encoding = "UTF-8"))
+        output_file.close()
         # need to make_getting code from db
         try:
-            output_file = open(config.way + "game_module/bots/" + player + ".py", 'wb')
-            output_file.write(self.code)
-            output_file.close()
-            module = imp.import_module("bots." + self.player_id)
+            module = imp.import_module("bots." + name)
             makeChoice = getattr(module, "make_choice")
             self.choice = makeChoice(int(self.x), int(self.y), field) # тут выбор
         except Exception as e:
@@ -585,32 +587,32 @@ class Player(Game_object):
         elif direction == "right":
             x_new += 1
         # weather the movement happens
-        if game.field[x_new][y_new].move:
-            self.parameters["step"] += 1
-            game.move_player(self, x_new, y_new)
+        if x_new > -1 and x_new < game.width and y_new > -1 and y_new < game.height:
+            if game.field[y_new][x_new].move:
+                self.parameters["moves"] += 1
+                game.move_player(self, x_new, y_new)
             
         
     
     def atack(self, game):
         self.parameters["shots"] += 1
         direction = self.choice[5:]
-        list_x = self.x
-        list_y = self.y
+        list_x = [self.x]
+        list_y = [self.y]
         if direction == "up":
-            list_y = range(y_now - 1, -1 , -1)
+            list_x = range(self.x - 1, -1 , -1)
         elif direction == "down":
-            list_x = range(x_now + 1, settings["height"], 1)
+            list_x = range(self.x + 1, game.width, 1)
         elif direction == "left":
-            list_x = range(x_now - 1, -1 , -1)
+            list_y = range(self.y - 1, -1 , -1)
         elif direction == "right":                   
-            list_x = range(x_now + 1, settings["width"], 1)
+            list_y = range(self.y + 1, game.height, 1)
         for x_change, y_change in product(list_x, list_y):
-            current_pos = game.field[x_change][y_change]
-            if current_pos.fire == 1:
+            if game.field[y_change][x_change].fire == 1:
                 self.parameters["hits"] += 1
-                current_pos.change_health(-1)
+                game.field[y_change][x_change].change_health(-1)
                 break
-            elif current_pos.fire == -1:
+            elif game.field[y_change][x_change].fire == -1:
                 break
                 
     
@@ -647,17 +649,16 @@ class Player(Game_object):
 
 
 
-
 if __name__ == "__main__":
     print("START")
     hi = MainGame(1)
+    print(hi.get_text_field())
+    for i in range(10):
+        hi.tick()
+    print(hi.get_text_field())
     for player in hi.players:
         print(player.code)
-    print(hi.get_text_field())
-    hi.tick()
-    hi.tick()
-    hi.tick()
-    print(hi.get_text_field())
+        print(player.parameters)
     hi.close()
     print("END")
     
