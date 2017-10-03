@@ -339,7 +339,7 @@ def new_battle(room_number, map_):
 
 
 class MainGame:
-    list_parametrs = ["moves", "shots", "coins", "hits", "crash", "error"]
+    list_parameters = ["moves", "shots", "coins", "hits", "crash", "error"]
     list_commands = ["go_up","fire_up","go_down","fire_down","go_right",
                      "fire_right","go_left","fire_left","crash"]
     current_tick = 0 
@@ -384,7 +384,7 @@ class MainGame:
         #get players
         result = self.cursor.execute("SELECT id FROM players WHERE room_id = -1").fetchall()
         shuffle(result)
-        game_ids_list = ["0" + str(i) for i in range(10)]
+        game_ids_list = [str(i) for i in range(10)]
         #6 random bots
         for player_settings in result:
             x = randint(0, self.width - 1)
@@ -396,8 +396,9 @@ class MainGame:
             self.field[y][x] = player
             self.players.append(player)
             self.cursor.execute(
-                "INSERT INTO player_status (id, InGame_id, last_action, health) VALUES (%s, %s, %s, %s)" %
-                    (player_settings[0], player.game_id, "start", health))
+                "INSERT INTO player_status (id, InGame_id, last_action, health) VALUES (%s, %s, '%s', %s)" %
+                    (player_settings[0], player.game_id, "some", health))
+            self.cursor.execute("UPDATE players SET room_id = %s" % self.room_id )
             self.db_update_code(player)
             game_ids_list.pop(0)
             
@@ -414,7 +415,7 @@ class MainGame:
     def play(self):
         sys.path.append(os.path.dirname(__file__) + "/bots")
         while True:
-            while self.curent_tick < self.max_ticks and len(players) > 1:
+            while self.current_tick < self.max_ticks and len(players) > 1:
                 self.tick
             self.close()
             self.new()
@@ -422,7 +423,7 @@ class MainGame:
     def tick(self):
         self.current_tick += 1
         for player in self.players:
-            player.work()
+            player.work(self)
         self.save_history()
         self.db_update_game_status()
         self.conn.commit()
@@ -458,7 +459,7 @@ class MainGame:
     def db_update_code(self, player):
         player.code = self.cursor.execute("SELECT code FROM players WHERE id = %s" 
                     % self.cursor.execute("SELECT id FROM player_status WHERE InGame_id = %s" 
-                                    % player.game_id).fetchone()[0])
+                                    % player.game_id).fetchone()[0]).fetchone()[0]
         
     
     def move_player(self, player, x, y):
@@ -469,12 +470,12 @@ class MainGame:
         
         
     def close(self): 
-        self.cursor.execute("UPDATE players SET room = -1 WHERE room = " + self.room_id)
-        self.cursor.execute("UPDATE rooms SET tick = -1 WHERE key = %s" % self.room_id)
+        self.cursor.execute("UPDATE rooms SET tick = -1 WHERE id = %s" % self.room_id)
         # bad way CHANGE P.S. i don't know how
-        for player_id in self.cursor.execute("SELECT id FROM players WHERE room_id = " 
-            + self.room_id).fetchall():
-            self.cursor.execute("DELETE FROM player_status WHERE id = " + player_id[0])
+        for player_id in self.cursor.execute("SELECT id FROM players WHERE room_id = %s" 
+            % self.room_id).fetchall():
+            self.cursor.execute("DELETE FROM player_status WHERE id = %s" % player_id[0])
+        self.cursor.execute("UPDATE players SET room_id = -1 WHERE room_id = " + self.room_id)
         self.conn.commit()
         self.conn.close()
     
@@ -523,7 +524,7 @@ class Player(Game_object):
         self.game_id = game_id
         
     def get_symbol(self):
-        return "P" + self.game_id
+        return "P" + self.game_id + "_"
         
     def effect_player(self, player):
         # Maybe hit???
@@ -544,7 +545,7 @@ class Player(Game_object):
             self.parameters["crash"] += 1
         
     def work(self, game):
-        if game.curent_tick % 20 == 0:
+        if game.current_tick % 20 == 0:
             game.update_code(self)
         self.make_choice(game.field)
         #Analize what each user does
@@ -604,12 +605,12 @@ class Player(Game_object):
         elif direction == "right":                   
             list_x = range(x_now + 1, settings["width"], 1)
         for x_change, y_change in product(list_x, list_y):
-            curent_pos = game.field[x_change][y_change]
-            if curent_pos.fire == 1:
+            current_pos = game.field[x_change][y_change]
+            if current_pos.fire == 1:
                 self.parameters["hits"] += 1
-                curent_pos.change_health(-1)
+                current_pos.change_health(-1)
                 break
-            elif curent_pos.fire == -1:
+            elif current_pos.fire == -1:
                 break
                 
     
@@ -648,11 +649,17 @@ class Player(Game_object):
 
 
 if __name__ == "__main__":
+    print("START")
     hi = MainGame(1)
+    for player in hi.players:
+        print(player.code)
     print(hi.get_text_field())
     hi.tick()
-    print("",hi.height, len(hi.field),"\n", hi.width, len(hi.field[0]))
-    print(hi.players[0].code)
+    hi.tick()
+    hi.tick()
+    print(hi.get_text_field())
+    hi.close()
+    print("END")
     
     
     
