@@ -351,12 +351,12 @@ class MainGame:
         #generate map
         self.generate_field(settings[1])
         self.generate_players(settings[2])
+        self.generate_coins(20)
 
         
     def generate_field(self, field_id):
         field_text = self.get_field_from_file(field_id)
         self.field = [[Land(i, j) for i in range(self.width)]for j in range(self.height)]
-        print( )
         for i in product(range(self.height), range(self.width)):
             if field_text[i[0]][i[1]] == "#":
                 self.field[i[0]][i[1]] = Wall(i[0], i[1])
@@ -376,7 +376,7 @@ class MainGame:
         #get players
         result = self.cursor.execute("SELECT id FROM players WHERE room = -1").fetchall()
         shuffle(result)
-        game_ids_list = ["01","02","03","04","05","06"]
+        game_ids_list = ["0" + str(i) for i in range(10)]
         #6 random bots
         for player_settings in result:
             x = randint(0, self.width - 1)
@@ -384,11 +384,20 @@ class MainGame:
             while not self.field[y][x].move:
                 x = randint(0, self.width - 1)
                 y = randint(0, self.height - 1)
-            
             player = Player(x, y, health, game_ids_list[0])
             game_ids_list.pop(0)
             self.field[y][x] = player
             self.players.append(player)
+#!!!! add db update 
+    def generate_coins(self, numer):
+        for iter_coin in range(numer):
+            x = randint(0, self.width - 1)
+            y = randint(0, self.height - 1)
+            while not self.field[y][x].move:
+                x = randint(0, self.width - 1)
+                y = randint(0, self.height - 1)
+            self.field[y][x] = Coin(x, y)
+            
         
     def save_history(self):
         history_file = open(way+"/history/"+self.room_id, 'w')
