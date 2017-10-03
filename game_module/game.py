@@ -5,7 +5,7 @@ import sys
 import os
 import importlib as imp
 from config import way
-from random import shuffle
+from random import shuffle, randint
 from itertools import product
 
 ## Before was a great system of print information by the game i will hide it by ##
@@ -335,7 +335,7 @@ def new_battle(room_number, map_):
 
 
 class MainGame:
-    list_parametrs = ["moves", "shots", "coins", "hits"]
+    list_parametrs = ["moves", "shots", "coins", "hits", "crash", "error"]
     list_commands = ["go_up","fire_up","go_down","fire_down","go_right",
                      "fire_right","go_left","fire_left","crash"]
     def __init__(self, room_id):
@@ -348,9 +348,9 @@ class MainGame:
         self.cursor.execute("SELECT * FROM settings WHERE id = 1")
         settings = self.cursor.fetchone()
         self.ticks = settings[3]
-        health = settings[2]
         #generate map
         self.generate_field(settings[1])
+        self.generate_players(settings[2])
 
         
     def generate_field(self, field_id):
@@ -370,6 +370,25 @@ class MainGame:
             self.height = len(result)
             self.width = len(result[0])
         return result
+    
+    def generate_players(self, health):
+        self.players = []
+        #get players
+        result = self.cursor.execute("SELECT id FROM players WHERE room = -1").fetchall()
+        shuffle(result)
+        game_ids_list = ["01","02","03","04","05","06"]
+        #6 random bots
+        for player_settings in result:
+            x = randint(0, self.width - 1)
+            y = randint(0, self.height - 1)
+            while not self.field[y][x].move:
+                x = randint(0, self.width - 1)
+                y = randint(0, self.height - 1)
+            
+            player = Player(x, y, health, game_ids_list[0])
+            game_ids_list.pop(0)
+            self.field[y][x] = player
+            self.players.append(player)
         
     def save_history(self):
         history_file = open(way+"/history/"+self.room_id, 'w')
@@ -378,7 +397,7 @@ class MainGame:
         
     # maybe i could do it by 2 list comp. but it was too big 
     def get_text_field(self):
-        result = str(self.tick)
+        result = ""
         for line in self.field:
             for element in line:
                 result += element.get_symbol() + "|"
@@ -392,9 +411,9 @@ class MainGame:
         self.conn.commit()
         
     def move_player(self, player, x, y):
-        self.field[x][y].effect_player(player)
+        self.field[y][x].effect_player(player)
         # Player can move just over Land
-        self.field[x][y], self.field[ player.x][player.y] = self.field[ player.x][player.y], Land()
+        self.field[y][x], self.field[ player.x][player.y] = self.field[ player.x][player.y], Land()
         player.x, player.y = x, y 
     
     
@@ -438,27 +457,36 @@ class Wall(Game_object):
     def get_symbol(self):
         return "_W_"
     
+class Coin(Game_object):
+    def get_symbol(self):
+        return "_C_"
+    def effect_player(self, player):
+        player.parameters["coins"] += 1
+        
+    
 
 class Player(Game_object):
-    parameters = {"moves":0, "shots":0, "coins":0, "hits":0}
+    parameters = {"moves":0, "shots":0, "coins":0, "hits":0, "crash":0, "error":0}
     move = False
     fire = 1
-    def __init__(self, x,y, health, player_id):
+    def __init__(self, x, y, health, player_game_id):
         self.x = x
-        self.y = x
+        self.y = y
         self.health = health
         #work with db
         self.player_game_id = player_game_id
         
     def get_symbol(self):
-        return "_P_"
+        return "P" + self.player_game_id
         
     def effect_player(self, player):
+        # Maybe hit???
         pass
     
     def make_choice(self, field):
         self.choice = ""
         
+        # need to make_getting code from db
         try:
             output_file = open(config.way + "game_module/bots/" + player + ".py", 'wb')
             output_file.write(self.code)
@@ -468,6 +496,7 @@ class Player(Game_object):
             self.choice = makeChoice(int(self.x), int(self.y), field) # тут выбор
         except Exception as e:
             self.choice = "crash"
+            self.parameters["crash"] += 1
         
     def work(self, game):
         self.make_choice(game.field)
@@ -480,6 +509,7 @@ class Player(Game_object):
         if self.choice not in game.list_commands:
             self.change_health(-1)
             self.choice = "error"
+            self.parameters["error"] += 1
         if self.choice[:3] == "go_":
             self.movement(game)
         #player wants to fire
@@ -575,6 +605,14 @@ class Player(Game_object):
 if __name__ == "__main__":
     hi = MainGame(1)
     print(hi.get_text_field())
+    print("",hi.height, len(hi.field),"\n", hi.width, len(hi.field[0]))
+    
+    
+    
+    
+    
+    
+    
 '''
     print("clear-clear all players hist rooms \nelse-start a game in test(0) room")
     x = input()
